@@ -14,7 +14,14 @@
 
 - Compile the TCP client and server using `g++` from command line.
 - What are the most important command line arguments to learn for `g++`?
+  -o : Names the output file
+  -c : Stops the compilation at object file
+  -O<n> : Optimizes the code to O<n>
+  -std=c++xx : Specifies the version of C++ to use
+  -g : Saves the debugging symbols for the code
+
 - What is the difference between debug vs release versions?
+  A debug build is a build made for easy debugging
 - What are the tradeoffs between debug and release versions?
 - What arguments would you use in a debug build?
 - What about for release?
