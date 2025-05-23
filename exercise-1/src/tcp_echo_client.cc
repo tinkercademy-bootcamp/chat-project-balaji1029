@@ -6,9 +6,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main() {
+int main(int argc, char** argv) {
+
+  if (argc < 2) {
+    std::cout << "Uh oh! No message to send :(";
+    return 0;
+  }
+
   // #Question - are these the same type? No, the left one is a string and the right one is a char array
-  std::string message = "Hello from client";
+  std::string message = argv[1];
   const int kPort = 8080;
   const std::string kServerAddress = "127.0.0.1";
   sockaddr_in address;
