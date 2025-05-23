@@ -7,7 +7,7 @@
 #include <unistd.h>
 
 int main() {
-  // #Question - are these the same type?
+  // #Question - are these the same type? No, the left one is a string and the right one is a char array
   std::string message = "Hello from client";
   const int kPort = 8080;
   const std::string kServerAddress = "127.0.0.1";
