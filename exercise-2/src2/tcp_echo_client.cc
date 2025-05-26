@@ -6,35 +6,45 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-std::string message(int argc, char** argv) {
+std::string mesg(int argc, char** argv) {
   if (argc < 2) {
-    return "";
+    std::cout << "No message to send :(" << std::endl;
+    exit(EXIT_FAILURE);
   }
   std::string mesg = argv[1];
   return mesg;
 }
 
-int main(int argc, char** argv) {
-  std::string mesg;
-  if ((mesg = message(argc, argv)) == "") {
-    std::cout << "No message to send :(" << std::endl;
-    return 0;
-  }
+int create_socket() {
+  int domain = AF_INET;
+  int type = SOCK_STREAM;
+  int protocol = 0;
 
-  // #Question - are these the same type? No, the left one is a string and the right one is a char array
-  std::string message = argv[1];
+  int sock = socket(domain, type, protocol);
+  if (sock < 0) {
+    std::cerr << "Socker creation error\n";
+    exit(EXIT_FAILURE);
+  }
+  return sock;
+}
+
+// sockaddr_in get_address(std::string server_addr) {
+//   sockaddr_in address;
+//   address.sin
+// }
+
+int main(int argc, char** argv) {
+  std::string message = mesg(argc, argv);
+
   const int kPort = 35000;
-  // const std::string kServerAddress = "13.235.123.2463";
   const std::string kServerAddress = "127.0.0.1";
-  sockaddr_in address;
   const int kBufferSize = 1024;
   char buffer[kBufferSize] = {0};
+  
   // Creating socket file descriptor
-  int my_sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (my_sock < 0) {
-    std::cerr << "Socket creation erron\n";
-    return -1;
-  }
+  int my_sock = create_socket();
+  
+  sockaddr_in address;
   address.sin_family = AF_INET;
   address.sin_port = htons(kPort);
   // Convert IPv4 and IPv6 addresses from text to binary form
