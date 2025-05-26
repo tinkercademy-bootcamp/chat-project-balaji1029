@@ -21,6 +21,16 @@ void attach_port(int sock, int &opt) {
   }
 }
 
+void bind_socket(int sock, sockaddr_in &address) {
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = INADDR_ANY;
+  address.sin_port = htons(kPort);
+  if (bind(sock, (sockaddr *)&address, sizeof(address)) < 0) {
+    std::cerr << "bind failed\n";
+    exit(EXIT_FAILURE);
+  }
+}
+
 int main() {
   const int kPort = 35000;
   sockaddr_in address;
@@ -36,14 +46,9 @@ int main() {
   // Attaching socket to port
   attach_port(my_sock, opt);
 
-  address.sin_family = AF_INET;
-  address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(kPort);
   // Bind the socket to the network address and port
-  if (bind(my_sock, (sockaddr *)&address, sizeof(address)) < 0) {
-    std::cerr << "bind failed\n";
-    return -1;
-  }
+  bind_socket(my_sock, address);
+  
   // Start listening for incoming connections
   if (listen(my_sock, 3) < 0) {
     std::cerr << "listen failed\n";
