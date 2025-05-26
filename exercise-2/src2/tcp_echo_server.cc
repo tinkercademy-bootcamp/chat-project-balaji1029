@@ -21,12 +21,19 @@ void attach_port(int sock, int &opt) {
   }
 }
 
-void bind_socket(int sock, sockaddr_in &address) {
+void bind_socket(int sock, sockaddr_in &address, int port) {
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
-  address.sin_port = htons(kPort);
+  address.sin_port = htons(port);
   if (bind(sock, (sockaddr *)&address, sizeof(address)) < 0) {
     std::cerr << "bind failed\n";
+    exit(EXIT_FAILURE);
+  }
+}
+
+void listen_socket(int sock) {
+  if (listen(sock, 3) < 0) {
+    std::cerr << "listen failed\n";
     exit(EXIT_FAILURE);
   }
 }
@@ -39,22 +46,20 @@ int main() {
   char buffer[kBufferSize] = {0};
   int my_sock;
   int opt = 1;
-
+  
   // Creating socket file descriptor
   my_sock = connect_server();
-
+  
   // Attaching socket to port
   attach_port(my_sock, opt);
-
+  
   // Bind the socket to the network address and port
-  bind_socket(my_sock, address);
+  bind_socket(my_sock, address, kPort);
+  std::cout << "Server listening on port " << kPort << "\n";
   
   // Start listening for incoming connections
-  if (listen(my_sock, 3) < 0) {
-    std::cerr << "listen failed\n";
-    return -1;
-  }
-  std::cout << "Server listening on port " << kPort << "\n";
+  listen_socket(my_sock);
+
   // Accept incoming connection
   int new_sock;
   while (true) {
