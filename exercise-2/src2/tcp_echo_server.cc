@@ -13,6 +13,14 @@ int connect_server() {
   return sock;
 }
 
+void attach_port(int sock, int &opt) {
+  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
+                 sizeof(opt))) {
+    std::cerr << "setsockopt error\n";
+    exit(EXIT_FAILURE);
+  }
+}
+
 int main() {
   const int kPort = 35000;
   sockaddr_in address;
@@ -26,11 +34,8 @@ int main() {
   my_sock = connect_server();
 
   // Attaching socket to port
-  if (setsockopt(my_sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
-                 sizeof(opt))) {
-    std::cerr << "setsockopt error\n";
-    return -1;
-  }
+  attach_port(my_sock, opt);
+
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
   address.sin_port = htons(kPort);
