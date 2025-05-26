@@ -59,20 +59,38 @@
 
 - Read the code in `src/`
 - Are there any bugs in this code? 
+
+  - Just one, the `tcp_echo_client.cc` should have `message.size() + 1` in line 49.
 - What can you do to identify if there are bugs in the code?
+
+  - Run testcases and check abnormal behaviours
 
 ## Refactoring: Extract Function
 
 - What is different in this code compared to exercise-1?
+
+  - This code is more modularized
 - Is this code better or worse than exercise-1?
+
+  - This is easier to read and work with and debug
 - What are the tradeoffs compared to exercise-1?
+
+  - This can be debugged and tested easily by creating tests for each function
 - Are you able to spot any mistakes or inconsistencies in the changes?
+
+  - No, not that I could find
   
 ## Thinking About Performance
 
 - Does writing code this way have any impact on performance?
+
+  - More the function calls adds up the stack memory but shouldn't affect much unless working on small scale programs
 - What do we mean when we say performance?
+
+  - The time overhead
 - How do we measure performance in a program?
+
+  - We can measure the performance in a program with `time` or `gprof`
 
 ## Play with Git
 
@@ -83,17 +101,30 @@
 - Make sure to commit each change as small and self-contained commit
 - This will make it easier to revert your code if you need to
 - What is `git tag`? How is `git tag` different from `git branch`?
+
+  - A tag is a naming for a specific commit to name it as a version of the code
 - How can you use `git tag` and `git branch` to make programming easier and
   more fun?
 
 ## Learn Basics of Debugging in Your IDE
 
 - How do you enable debug mode in your IDE?
+
+  - Can use `launch.json`
 - In debug mode, how do you add a watch?
+
+  - Right click and select watch
 - In debug mode, how do you add a breakpoint?
+
+  - Click on the red button next to the line
 - In debug mode, how do you step through code?
+
+  - Step with the Step button
 
 ### Memory Management and Debug Mode in Your IDE
 
 - How do you see the memory layout of a `std::string` from your IDE debug mode?
+  - Extend the string's section in the variables section
 - How do you see the memory layout of a struct from your IDE debug mode?
+  
+  - Same but for the structs
