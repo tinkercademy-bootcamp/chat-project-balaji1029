@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main() {
-  const int kPort = 8080;
+  const int kPort = 35000;
   sockaddr_in address;
   socklen_t addrlen = sizeof(address);
   const int kBufferSize = 1024;
