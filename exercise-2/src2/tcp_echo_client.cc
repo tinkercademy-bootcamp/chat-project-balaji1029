@@ -28,10 +28,16 @@ int create_socket() {
   return sock;
 }
 
-// sockaddr_in get_address(std::string server_addr) {
-//   sockaddr_in address;
-//   address.sin
-// }
+sockaddr_in get_address(std::string server_addr, int port) {
+  sockaddr_in address;
+  address.sin_family = AF_INET;
+  address.sin_port = htons(port);
+  if (inet_pton(AF_INET, server_addr.c_str(), &address.sin_addr) <= 0) {
+    std::cerr << "Invalid address/ Address not supported\n";
+    exit(EXIT_FAILURE);
+  }
+  return address;
+}
 
 int main(int argc, char** argv) {
   std::string message = mesg(argc, argv);
@@ -44,14 +50,8 @@ int main(int argc, char** argv) {
   // Creating socket file descriptor
   int my_sock = create_socket();
   
-  sockaddr_in address;
-  address.sin_family = AF_INET;
-  address.sin_port = htons(kPort);
-  // Convert IPv4 and IPv6 addresses from text to binary form
-  if (inet_pton(AF_INET, kServerAddress.c_str(), &address.sin_addr) <= 0) {
-    std::cerr << "Invalid address/ Address not supported\n";
-    return -1;
-  }
+  sockaddr_in address = get_address(kServerAddress, kPort);
+  
   // Connect to the server
   if (connect(my_sock, (sockaddr *)&address, sizeof(address)) < 0) {
     std::cerr << "Connection Failed\n";
