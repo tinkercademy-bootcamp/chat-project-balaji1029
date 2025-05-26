@@ -13,6 +13,8 @@
 - Or type `man 7 socket` in terminal
 - When would you want to use a `SOCK_RAW` stream?
 
+  - We use SOCK_RAW when we want to not use the standard TCP/IP protocols
+
 ### TCP and IP Protocols
 - [IPv4](https://www.rfc-editor.org/info/rfc791) - Internet Protocol 
   specification defining packet structure and routing
@@ -25,16 +27,33 @@
 - [C++23 ISO standard draft](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) - 
   Working draft of the C++ language specification
 - Is the above the official C++23 spec? 
+
+  - Nope, it is an initial draft and it is incomplete
 - Where is the official C++23 spec?
+
+  - [The standard](https://isocpp.org/std/the-standard)
 - Why was this link chosen instead?
+
+  - Idkkk, cuz it's a pdf which is compiled?
 - Is this a helpful reference for learning C++?
+
+  - Yeahh looks like it
 - Can the various implementations of C++ compilers be different from the
   C++ standard?
+
+  - No, they should follow the specifications
 - What are the most widely used and most significant C++ compilers?
+
+  - g++, clang
 - Where is the equivalent spec for C++26?
 
+  - [C++26 draft](https://github.com/cplusplus/draft)
 - Where do you find the spec for the HTTP protocol?
+
+  - [Specs](https://httpwg.org/specs/)
 - What about HTTPS? Is there a spec for that protocol?
+
+  - Not that I could find
 
 ## Introduction to C++ and Sockets Programming
 
