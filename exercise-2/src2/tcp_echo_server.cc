@@ -38,6 +38,20 @@ void listen_socket(int sock) {
   }
 }
 
+void read_and_send(int my_sock, int &new_sock, sockaddr_in &address, socklen_t addrlen, char* buffer, int kBufferSize) {
+  new_sock = accept(my_sock, (struct sockaddr *)&address, &addrlen);
+  if (new_sock < 0) {
+    std::cerr << "accept error\n";
+    exit(EXIT_FAILURE);
+  }
+  // Wait for read
+  ssize_t read_size = read(new_sock, buffer, kBufferSize);
+  std::cout << "Received: " << buffer << "\n";
+  // Send reply
+  send(new_sock, buffer, read_size, 0);
+  std::cout << "Echo message sent" << "\n";
+}
+
 int main() {
   const int kPort = 35000;
   sockaddr_in address;
@@ -63,17 +77,7 @@ int main() {
   // Accept incoming connection
   int new_sock;
   while (true) {
-    new_sock = accept(my_sock, (struct sockaddr *)&address, &addrlen);
-    if (new_sock < 0) {
-      std::cerr << "accept error\n";
-      return -1;
-    }
-    // Wait for read
-    ssize_t read_size = read(new_sock, buffer, kBufferSize);
-    std::cout << "Received: " << buffer << "\n";
-    // Send reply
-    send(new_sock, buffer, read_size, 0);
-    std::cout << "Echo message sent" << "\n";
+    read_and_send(my_sock, new_sock, address, addrlen, buffer, kBufferSize);
   }
   // Close the socket
   close(new_sock);
