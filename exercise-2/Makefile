@@ -1,10 +1,10 @@
 all: build build/server build/client
 
-build/server: src/tcp_echo_server.cc
-	g++ src/tcp_echo_server.cc -o build/server
+build/server: src2/tcp_echo_server.cc
+	g++ $< -o $@
 
-build/client: src/tcp_echo_client.cc
-	g++ src/tcp_echo_client.cc -o build/client
+build/client: src2/tcp_echo_client.cc
+	g++ $< -o $@
 
 build:
 	mkdir build

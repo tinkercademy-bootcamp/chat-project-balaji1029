@@ -6,10 +6,18 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main(int argc, char** argv) {
-
+std::string message(int argc, char** argv) {
   if (argc < 2) {
-    std::cout << "Uh oh! No message to send :(";
+    return "";
+  }
+  std::string mesg = argv[1];
+  return mesg;
+}
+
+int main(int argc, char** argv) {
+  std::string mesg;
+  if ((mesg = message(argc, argv)) == "") {
+    std::cout << "No message to send :(" << std::endl;
     return 0;
   }
 
@@ -17,7 +25,7 @@ int main(int argc, char** argv) {
   std::string message = argv[1];
   const int kPort = 35000;
   // const std::string kServerAddress = "13.235.123.2463";
-  const std::string kServerAddress = "172.31.16.35";
+  const std::string kServerAddress = "127.0.0.1";
   sockaddr_in address;
   const int kBufferSize = 1024;
   char buffer[kBufferSize] = {0};
