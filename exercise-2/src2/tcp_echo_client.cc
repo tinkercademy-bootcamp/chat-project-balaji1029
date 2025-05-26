@@ -39,6 +39,13 @@ sockaddr_in get_address(std::string server_addr, int port) {
   return address;
 }
 
+void connect_to_server(int sock, sockaddr_in addr) {
+  if (connect(sock, (sockaddr*) &addr, sizeof(addr)) < 0) {
+    std::cerr << "Connection Failed\n";
+    exit(EXIT_FAILURE);
+  }
+}
+
 int main(int argc, char** argv) {
   std::string message = mesg(argc, argv);
 
@@ -51,12 +58,10 @@ int main(int argc, char** argv) {
   int my_sock = create_socket();
   
   sockaddr_in address = get_address(kServerAddress, kPort);
-  
+
   // Connect to the server
-  if (connect(my_sock, (sockaddr *)&address, sizeof(address)) < 0) {
-    std::cerr << "Connection Failed\n";
-    return -1;
-  }
+  connect_to_server(my_sock, address);
+
   // Send message
   send(my_sock, message.c_str(), message.size()+1, 0);
   std::cout << "Sent: " << message << "\n";
