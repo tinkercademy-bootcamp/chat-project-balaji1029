@@ -46,6 +46,13 @@ void connect_to_server(int sock, sockaddr_in addr) {
   }
 }
 
+void send_and_receive(int sock, std::string message, char* buffer, int buf_size) {
+  send(sock, message.c_str(), message.size()+1, 0);
+  std::cout << "Sent: " << message << "\n";
+  ssize_t read_size = read(sock, buffer, buf_size);
+  std::cout << "Received: " << buffer << "\n";
+}
+
 int main(int argc, char** argv) {
   std::string message = mesg(argc, argv);
 
@@ -63,11 +70,8 @@ int main(int argc, char** argv) {
   connect_to_server(my_sock, address);
 
   // Send message
-  send(my_sock, message.c_str(), message.size()+1, 0);
-  std::cout << "Sent: " << message << "\n";
-  // Wait for reply
-  ssize_t read_size = read(my_sock, buffer, kBufferSize);
-  std::cout << "Received: " << buffer << "\n";
+  send_and_receive(my_sock, message, buffer, kBufferSize);
+  
   // Close the socket
   close(my_sock);
   return 0;
