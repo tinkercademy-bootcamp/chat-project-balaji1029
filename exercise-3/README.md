@@ -15,17 +15,19 @@
   - No?
 - Apply `check_error` to all the code in `src/`
 
-  - Already applied?
-
 ## Introduction to Compiler Explorer
 
 - Try out the old `create_socket()` and the new `check_error()` and 
-  `create_socket()` in [Compiler Explorer](https://godbolt.org) - Interactive 
-  tool for exploring how C++ code compiles to assembly
+  `create_socket()` in [Compiler Explorer](https://godbolt.org) - Interactive tool for exploring how C++ code compiles to assembly
+  - It's calling a function instead of doing the same in the function
 - What is happening here?
+
+  - It's a funcion call and the code is calling the `check_error`
 - Can you think of any different approaches to this problem?
 - How can you modify your Makefile to generate assembly code instead of
   compiled code?
+
+  - Using `-S` flag with `g++` or `objdump -d`
 - **Note**: You can save the generated assembly from Compiler Explorer
 - **Bonus**: Can you view assembly code using your IDE?
 - **Bonus**: How do you see the assembly when you step through each line in
@@ -38,11 +40,19 @@
 - Make sure you have `-fsanitize=address` in both your `CXX_FLAGS` and 
   `LD_FLAGS` in your Makefile
 - What do `-fsanitize=address`, `CXX_FLAGS` and `LD_FLAGS` mean?
+
+  - Address Sanitizer gives details of memory leakages and double-free and use-after-free bugs
 - With the new tool of the Compiler Explorer, and keeping in mind what you 
   have learned about how to use debug mode
 - What happens when you look at a `std::string` using the above methods?
+
+  - You find it in the `.data` section of the program
 - Where is the text in your `std::string`?
+
+  - In the `.data` section
 - What is `std::optional`?
+
+  - 
 - How do you find out the memory layout of a `std::optional`?
 - Read https://en.cppreference.com/w/cpp/memory#Smart_pointers - Guide to 
   modern C++ memory management using smart pointers
