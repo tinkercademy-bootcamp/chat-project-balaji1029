@@ -23,7 +23,7 @@
   - A debug build is a build made for easy debugging while release version is a version that's released to public usage or to the clients
 - What are the tradeoffs between debug and release versions?
 
-  - ???
+  - debug version is slow and has a huge memory footprint but release versions are relatively lighter
 - What arguments would you use in a debug build?
   - Maybe a -g flag to store the debug symbols
 - What about for release?
@@ -31,7 +31,7 @@
   - For the release, one might use -O3 or -O2 flags for optimization
 - What other kinds of build types are useful?
 
-  - ???
+  - debug, test and so on
 
 ## Learn Basics of Make
 
@@ -71,7 +71,7 @@
 - Commit your changes into git
 - What do all these headers do?
 
-  - 
+  - Each header has one or the other functionality
 - How do you find out which part of the below code comes from which header?
 
   - Ctrl + click
