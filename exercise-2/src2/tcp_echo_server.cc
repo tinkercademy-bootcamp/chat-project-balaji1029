@@ -4,6 +4,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+int connect_server() {
+  int sock;
+  if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    std::cerr << "Socket creation erron\n";
+    exit(EXIT_FAILURE);
+  }
+  return sock;
+}
+
 int main() {
   const int kPort = 35000;
   sockaddr_in address;
@@ -12,11 +21,10 @@ int main() {
   char buffer[kBufferSize] = {0};
   int my_sock;
   int opt = 1;
+
   // Creating socket file descriptor
-  if ((my_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-    std::cerr << "Socket creation erron\n";
-    return -1;
-  }
+  my_sock = connect_server();
+
   // Attaching socket to port
   if (setsockopt(my_sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt,
                  sizeof(opt))) {
