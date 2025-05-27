@@ -17,14 +17,8 @@ namespace tt::chat::server {
     void set_socket_options(int sock, int opt);
     int create_server_socket();
     void bind_address_to_socket(int sock, sockaddr_in &address);
-
+    void listen_on_socket(int sock);
   };
-
-  void listen_on_socket(int sock) {
-    namespace ttc = tt::chat;
-    auto err_code = listen(sock, 3);
-    ttc::check_error(err_code < 0, "listen failed\n");
-  }
 
   void handle_accept(int sock) {
     namespace ttc = tt::chat;
