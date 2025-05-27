@@ -15,14 +15,10 @@ namespace tt::chat::server {
     sockaddr_in address;
 
     void set_socket_options(int sock, int opt);
+    int create_server_socket();
 
   };
 
-  int create_server_socket() {
-    int sock = net::create_socket();
-    set_socket_options(sock, 1);
-    return sock;
-  }
 
   void bind_address_to_socket(int sock, sockaddr_in &address) {
     namespace ttc = tt::chat;
