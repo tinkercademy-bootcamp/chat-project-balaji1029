@@ -59,14 +59,22 @@
 - Read https://en.cppreference.com/w/cpp/memory#Smart_pointers - Guide to 
   modern C++ memory management using smart pointers
 - Which pointer types are the most important to know about?
+
+  - `shared_ptr`, `unique_ptr`
 - Which smart pointer should you use by default if you can?
+
+  - `unique_ptr` should be the go to pointer if we know that the reference is going to be unique, but `shared_ptr` is more useful in data structures like Linked List
 - Does changing your optimization level in `CXXFLAGS` from `-O0` to `-O3` have
   any impact on the answers to any of the above questions?
+
+  - No, the specifications of the C++ classes don't change by the optimisations used by the compiler
 
 ## More Thinking About Performance
 
 - After your experiments with Compiler Explorer, do you have any updates for
   your answers in exercise-2?
+
+  - We can check out the memory layout of statically defined character arrays in the `.data` section of the executable
 
 ### Bonus: Do Not Watch Now 
 
