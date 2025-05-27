@@ -10,7 +10,7 @@ all: build build/server build/client
 # 	g++ $(CXX_FLAGS) $< -o $@
 
 build/%: src/tcp_echo_%.cpp src/socket_helper.cc
-		g++ $(CXX_FLAGS) $< -o $@
+		g++ $(CXX_FLAGS) $^ -o $@
 
 build:
 	mkdir build
