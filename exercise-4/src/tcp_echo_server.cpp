@@ -3,13 +3,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-template <typename T, typename S> void check_error(T test, S error_message) {
-  if (test) {
-    std::cerr << error_message << "\n";
-    exit(EXIT_FAILURE);
-  }
-}
+#include "socket_helper.h"
 
 int create_socket() {
   int my_sock;

@@ -6,13 +6,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-void check_error(bool test, std::string error_message) {
-  if (test) {
-    std::cerr << error_message << "\n";
-    exit(EXIT_FAILURE);
-  }
-}
+#include "socket_helper.h"
 
 int create_socket() {
   int sock = socket(AF_INET, SOCK_STREAM, 0);
