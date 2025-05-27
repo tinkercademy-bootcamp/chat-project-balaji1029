@@ -1,11 +1,5 @@
 #include <arpa/inet.h>
 #include <cstdlib>
-#include <iostream>
-#include <netinet/in.h>
-#include <string>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include "socket_helper.h"
 
 sockaddr_in create_address(const std::string &server_ip, int port) {

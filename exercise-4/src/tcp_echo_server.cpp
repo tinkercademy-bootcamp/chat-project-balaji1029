@@ -1,8 +1,3 @@
-#include <iostream>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include "socket_helper.h"
 
 void set_socket_options(int sock, int opt) {
