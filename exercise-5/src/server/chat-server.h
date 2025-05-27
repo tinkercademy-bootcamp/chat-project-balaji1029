@@ -15,9 +15,6 @@ namespace tt::chat::server {
     sockaddr_in address;
     int port;
 
-    public:
-    Server(int port): port(port){}
-
     void set_socket_options(int opt);
     int create_server_socket();
     void bind_address_to_socket();
@@ -25,6 +22,25 @@ namespace tt::chat::server {
     void handle_accept(int socket);
     sockaddr_in create_server_address();
     void handle_connections();
+
+    public:
+    Server(int port): port(port){
+      create_server_socket();
+      create_server_address();
+    }
+
+    void keep_listening() {
+      bind_address_to_socket();
+      listen_on_socket();
+
+      std::cout << "Server listening on port " << port << "\n";
+      handle_connections();
+    }
+
+    ~Server() {
+      close(sock);
+    }
+
   };
 
 } // namespace tt::chat::server
