@@ -34,20 +34,37 @@
 - How should you divide the code into files?
 - What namespace and directory structure should you use? Why?
 
+  - I used tt::chat::server namespace and Server class in the namespace as that seemed like the most sensible thing to do
+
 ## Programming Sense of Taste
 
 - How do you judge what makes a particular choice of namespace and directory
   structure? 
+
+  - I always went through what makes more sense, but I have to read up on some good programming styles
 - How do you judge what makes a good naming convention or programming style?
+
+  - Naming convention has to be understandable and easy to interpret for the readers, so have to make it as clear and concise as possible
 
 ## "Senses" in Programming
 
 - Have you ever heard of programmers referring to "code smells"? How can code
   smell?
+
+  - Never really heard of it, but yeah from Google, it means when the code is really cluttered or clumsy or when it's hard to maintain or read
 - What does it mean to have a sense of taste in programming? How can code
   taste?
+
+  - To have a taste in how code is factored and prefer to like it more than other I guess
 - Is there an analogue for every sense?
+
+  - I found this [Linkedin post](https://www.linkedin.com/pulse/many-senses-software-engineering-douglas-w-arcuri/) which has the analogues to all the senses in Programming
 - What other code senses can you think of?
 - How many senses do humans have?
+  - Five
 - When would you want to see something before you touch it?
+
+  - Almost always
 - When would you want to touch something before you see it?
+
+  - Almost never?
