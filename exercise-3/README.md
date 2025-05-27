@@ -8,7 +8,6 @@
 - A new function `check_error()` has been created and `create_socket()` from 
   exercise-2 has been refactored to make use of it
 - What are the benefits of writing code in this way?
-
   - This is easier to use and removes redundant code so one doesn't have to write the same code multiple times
 - Are there any costs to writing code like this?
 
@@ -32,6 +31,7 @@
 - **Bonus**: Can you view assembly code using your IDE?
 - **Bonus**: How do you see the assembly when you step through each line in
   debugging mode from your IDE?
+  - With gdb, yes using tui enabled
 - [x86 assembly reference](http://ref.x86asm.net/) - Comprehensive reference 
   for x86 assembly language instructions and syntax
 
@@ -52,8 +52,10 @@
   - In the `.data` section
 - What is `std::optional`?
 
-  - 
+  - `std::optional` is a container for nullable objects to make sure we don't run into accessing garbage memory. It stores an object or a null type and gives interface to use the object safely
 - How do you find out the memory layout of a `std::optional`?
+
+  - Can check it out by running a debugger on a code and checking the variable's data
 - Read https://en.cppreference.com/w/cpp/memory#Smart_pointers - Guide to 
   modern C++ memory management using smart pointers
 - Which pointer types are the most important to know about?
