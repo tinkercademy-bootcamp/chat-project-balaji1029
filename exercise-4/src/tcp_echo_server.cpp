@@ -5,13 +5,6 @@
 #include <unistd.h>
 #include "socket_helper.h"
 
-int create_socket() {
-  int my_sock;
-  my_sock = socket(AF_INET, SOCK_STREAM, 0);
-  check_error(my_sock < 0, "Socket creation error\n");
-  return my_sock;
-}
-
 void set_socket_options(int sock, int opt) {
   auto err_code = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
                              &opt, sizeof(opt));
