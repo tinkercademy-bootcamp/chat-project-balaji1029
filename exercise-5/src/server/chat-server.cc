@@ -22,7 +22,7 @@ int tt::chat::server::Server::create_server_socket() {
   return sock;
 }
 
-void tt::chat::server::Server::bind_address_to_socket(sockaddr_in &address) {
+void tt::chat::server::Server::bind_address_to_socket() {
   namespace ttc = tt::chat;
   auto err_code = bind(sock, (sockaddr *)&address, sizeof(address));
   ttc::check_error(err_code < 0, "bind failed\n");
@@ -58,10 +58,11 @@ sockaddr_in tt::chat::server::Server::create_server_address() {
   namespace ttn = tt::chat::net;
   sockaddr_in address = ttn::create_address(port);
   address.sin_addr.s_addr = INADDR_ANY;
+  this->address = address;
   return address;
 }
 
-void tt::chat::server::Server::handle_connections(sockaddr_in &address) {
+void tt::chat::server::Server::handle_connections() {
   socklen_t address_size = sizeof(address);
 
   while (true) {

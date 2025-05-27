@@ -10,11 +10,11 @@ int main() {
   sockaddr_in address = server.create_server_address();
 
   // start listening on the socket
-  server.bind_address_to_socket(my_socket, address);
-  server.listen_on_socket(my_socket);
+  server.bind_address_to_socket();
+  server.listen_on_socket();
 
   std::cout << "Server listening on port " << kPort << "\n";
-  server.handle_connections(my_socket, address);
+  server.handle_connections();
   close(my_socket);
 
   return 0;

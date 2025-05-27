@@ -12,6 +12,7 @@ namespace tt::chat::server {
 
   class Server {
     int sock;
+    sockaddr_in address;
     int port;
 
     public:
@@ -19,11 +20,11 @@ namespace tt::chat::server {
 
     void set_socket_options(int opt);
     int create_server_socket();
-    void bind_address_to_socket(sockaddr_in &address);
+    void bind_address_to_socket();
     void listen_on_socket();
     void handle_accept(int socket);
     sockaddr_in create_server_address();
-    void handle_connections(sockaddr_in &address);
+    void handle_connections();
   };
 
 } // namespace tt::chat::server
