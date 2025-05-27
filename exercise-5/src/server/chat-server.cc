@@ -52,3 +52,20 @@ void tt::chat::server::Server::handle_accept(int sock) {
   }
   close(sock);
 }
+
+sockaddr_in tt::chat::server::Server::create_server_address(int port) {
+  namespace ttn = tt::chat::net;
+  sockaddr_in address = ttn::create_address(port);
+  address.sin_addr.s_addr = INADDR_ANY;
+  return address;
+}
+
+void tt::chat::server::Server::handle_connections(int sock, sockaddr_in &address) {
+  socklen_t address_size = sizeof(address);
+
+  while (true) {
+    int accepted_socket = accept(sock, (sockaddr *)&address, &address_size);
+    check_error(accepted_socket < 0, "Accept error n ");
+    handle_accept(accepted_socket);
+  }
+}

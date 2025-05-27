@@ -19,24 +19,8 @@ namespace tt::chat::server {
     void bind_address_to_socket(int sock, sockaddr_in &address);
     void listen_on_socket(int sock);
     void handle_accept(int sock);
-
+    sockaddr_in create_server_address(int port);
+    void handle_connections(int sock, sockaddr_in &address);
   };
-  
-  sockaddr_in create_server_address(int port) {
-    namespace ttn = tt::chat::net;
-    sockaddr_in address = ttn::create_address(port);
-    address.sin_addr.s_addr = INADDR_ANY;
-    return address;
-  }
-
-  void handle_connections(int sock, sockaddr_in &address) {
-    socklen_t address_size = sizeof(address);
-
-    while (true) {
-      int accepted_socket = accept(sock, (sockaddr *)&address, &address_size);
-      check_error(accepted_socket < 0, "Accept error n ");
-      handle_accept(accepted_socket);
-    }
-  }
 
 } // namespace tt::chat::server
