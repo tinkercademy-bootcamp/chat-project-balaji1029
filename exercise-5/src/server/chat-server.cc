@@ -53,7 +53,7 @@ void tt::chat::server::Server::handle_accept(int sock) {
   close(sock);
 }
 
-sockaddr_in tt::chat::server::Server::create_server_address(int port) {
+sockaddr_in tt::chat::server::Server::create_server_address() {
   namespace ttn = tt::chat::net;
   sockaddr_in address = ttn::create_address(port);
   address.sin_addr.s_addr = INADDR_ANY;
