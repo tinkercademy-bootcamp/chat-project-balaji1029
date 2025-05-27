@@ -7,6 +7,8 @@
 #include "../net/chat-sockets.h"
 #include "../utils.h"
 
+#ifndef CHAT_SERVER_H
+#define CHAT_SERVER_H
 
 namespace tt::chat::server {
 
@@ -44,3 +46,5 @@ namespace tt::chat::server {
   };
 
 } // namespace tt::chat::server
+
+#endif // CHAT_SERVER_H

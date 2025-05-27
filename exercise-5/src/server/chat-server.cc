@@ -17,8 +17,8 @@ void tt::chat::server::Server::set_socket_options(int opt) {
 
 int tt::chat::server::Server::create_server_socket() {
   int sock = net::create_socket();
-  set_socket_options(1);
   this->sock = sock;
+  set_socket_options(1);
   return sock;
 }
 
