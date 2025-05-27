@@ -8,7 +8,7 @@
 #include "chat-server.h"
 #include "../utils.h"
 
-void tt::chat::server::Server::set_socket_options(int sock, int opt) {
+void tt::chat::server::Server::set_socket_options(int opt) {
   namespace ttc = tt::chat;
   auto err_code = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
                             &opt, sizeof(opt));
@@ -17,17 +17,18 @@ void tt::chat::server::Server::set_socket_options(int sock, int opt) {
 
 int tt::chat::server::Server::create_server_socket() {
   int sock = net::create_socket();
-  set_socket_options(sock, 1);
+  set_socket_options(1);
+  this->sock = sock;
   return sock;
 }
 
-void tt::chat::server::Server::bind_address_to_socket(int sock, sockaddr_in &address) {
+void tt::chat::server::Server::bind_address_to_socket(sockaddr_in &address) {
   namespace ttc = tt::chat;
   auto err_code = bind(sock, (sockaddr *)&address, sizeof(address));
   ttc::check_error(err_code < 0, "bind failed\n");
 }
 
-void tt::chat::server::Server::listen_on_socket(int sock) {
+void tt::chat::server::Server::listen_on_socket() {
   namespace ttc = tt::chat;
   auto err_code = listen(sock, 3);
   ttc::check_error(err_code < 0, "listen failed\n");
@@ -60,7 +61,7 @@ sockaddr_in tt::chat::server::Server::create_server_address() {
   return address;
 }
 
-void tt::chat::server::Server::handle_connections(int sock, sockaddr_in &address) {
+void tt::chat::server::Server::handle_connections(sockaddr_in &address) {
   socklen_t address_size = sizeof(address);
 
   while (true) {

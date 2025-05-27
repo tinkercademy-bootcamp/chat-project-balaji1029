@@ -11,18 +11,19 @@
 namespace tt::chat::server {
 
   class Server {
+    int sock;
     int port;
 
     public:
     Server(int port): port(port){}
 
-    void set_socket_options(int sock, int opt);
+    void set_socket_options(int opt);
     int create_server_socket();
-    void bind_address_to_socket(int sock, sockaddr_in &address);
-    void listen_on_socket(int sock);
-    void handle_accept(int sock);
+    void bind_address_to_socket(sockaddr_in &address);
+    void listen_on_socket();
+    void handle_accept(int socket);
     sockaddr_in create_server_address();
-    void handle_connections(int sock, sockaddr_in &address);
+    void handle_connections(sockaddr_in &address);
   };
 
 } // namespace tt::chat::server
