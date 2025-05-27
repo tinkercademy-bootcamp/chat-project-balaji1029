@@ -16,15 +16,9 @@ namespace tt::chat::server {
 
     void set_socket_options(int sock, int opt);
     int create_server_socket();
+    void bind_address_to_socket(int sock, sockaddr_in &address);
 
   };
-
-
-  void bind_address_to_socket(int sock, sockaddr_in &address) {
-    namespace ttc = tt::chat;
-    auto err_code = bind(sock, (sockaddr *)&address, sizeof(address));
-    ttc::check_error(err_code < 0, "bind failed\n");
-  }
 
   void listen_on_socket(int sock) {
     namespace ttc = tt::chat;
