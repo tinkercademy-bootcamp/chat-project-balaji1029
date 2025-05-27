@@ -16,9 +16,27 @@
 namespace tt::chat::client {
 
   class Client {
+    sockaddr_in address;
+    int sock;
+
     sockaddr_in create_server_address(const std::string &server_ip, int port);
     void connect_to_server(int sock, sockaddr_in &server_address);
     void send_and_receive_message(int sock, const std::string &message);
+    
+    public:
+    Client(const std::string &server_ip, int port) {
+      sock = net::create_socket();
+      address = create_server_address(server_ip, port);
+    }
+
+    void connect_and_send(const std::string & message) {
+      connect_to_server(sock, address);
+      send_and_receive_message(sock, message);
+    }
+
+    ~Client() {
+      close(sock);
+    }
   };
 
 } // namespace tt::chat::client
