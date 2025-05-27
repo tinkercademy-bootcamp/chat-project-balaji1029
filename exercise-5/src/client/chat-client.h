@@ -17,15 +17,8 @@ namespace tt::chat::client {
 
   class Client {
     sockaddr_in create_server_address(const std::string &server_ip, int port);
+    void connect_to_server(int sock, sockaddr_in &server_address);
   };
-
-
-void connect_to_server(int sock, sockaddr_in &server_address) {
-  using namespace tt::chat;
-  auto err_code =
-      connect(sock, (sockaddr *)&server_address, sizeof(server_address));
-  check_error(err_code < 0, "Connection Failed.\n");
-}
 
 void send_and_receive_message(int sock, const std::string &message) {
   using namespace tt::chat;

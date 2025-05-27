@@ -9,4 +9,11 @@ sockaddr_in tt::chat::client::Client::create_server_address(const std::string &s
   return address;
 }
 
+void tt::chat::client::Client::connect_to_server(int sock, sockaddr_in &server_address) {
+  using namespace tt::chat;
+  auto err_code =
+      connect(sock, (sockaddr *)&server_address, sizeof(server_address));
+  check_error(err_code < 0, "Connection Failed.\n");
+}
+
 
