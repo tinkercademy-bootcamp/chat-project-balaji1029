@@ -46,7 +46,7 @@ void send_and_receive_message(int sock, const std::string &message) {
   char buffer[kBufferSize] = {0};
 
   // Send the message to the server
-  send(sock, message.c_str(), message.size(), 0);
+  send(sock, message.c_str(), message.size() + 1, 0);
   std::cout << "Sent: " << message << "\n";
 
   // Receive response from the server
