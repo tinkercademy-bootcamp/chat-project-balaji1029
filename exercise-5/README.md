@@ -6,17 +6,25 @@
 
 - What's an easy way to identify the changes in source code from one exercise
   to another?
+
+  - We can use `diff -qr ` across the directories to get the diff
     
 ## Using Classes
 
 - Here is one way to separate out the code into multiple files
 - Is this the best way to do it? 
+
+  - There is no best way to do it? It all depends on how modularised and easy to browse the code is
 - What are the advantages and disadvantages?
+
+  - The advantages are that the functions are seperated according to the purpose and hence are easier to look for and work with
 
 ## Introduction to Namespace
 
 - There are different ways namespace is being used in this exercise
 - Which way is better? What are the advantages and disadvantages?
+
+  - The namespaces here is the convention suggested by the Rust book with the directory structure and gives a huge tree structure of directories when there are too many features in the program
 
 ## Abstracting Code into Classes
 
