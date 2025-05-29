@@ -27,8 +27,24 @@
 ## Static Linking vs Dynamic Linking
 
 - What are the differences between static linking and dynamic linking?
+
+  - Static linking is when the functions used by the code are linked into the executable while compiling it, whereas in the case of dynamic linking, the object files are dynamically linked during the runtime
 - What are the tradeoffs?
+
+  - Static Linking leads to a lot of redundant space in the memory as well as the executable size, whereas dynamic linking leads to slower runtime as it includes linking during runtime
 - How do you enable static linking or dynamic linking in your makefile?
+
+  - To compile a library file to a dynamically linker file,
+  ```bash
+    g++ -fPIC -c hello.cpp
+    g++ -shared -o libhello.so hello.o 
+  ```
+  Then to link the library to a program
+  ```bash
+    g++ -o main main.cpp -L<path/to/libhello.so> -lhello
+  ```
+
+  We can automate this with a makefile
 
 ## Git Clone and Building from Source
 
