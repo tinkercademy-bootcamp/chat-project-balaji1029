@@ -57,5 +57,11 @@
 ## C++ Package Managers
 
 - Why are there so many C++ package managers?
+
+  - Because a lot of companies started to work on C++ independently and they have their own implementations of libraries
 - Which one is the best one?
+
+  - Best package manager is subjective and depends on the choice, but Conan seems to be the most agreed upon by developers, though I've neveer used one
 - Which are the most notable ways to manage the compilation of C++ projects?
+
+  - We can use Make or CMake to manage the compilation of C++, we can also use bash scripts to do the same, although that's a bad idea considering a bash script wouldn't consider the last edit time
