@@ -49,8 +49,11 @@
 ## Git Clone and Building from Source
 
 - Where is `g++` looking for the include files and library files?
+
+  - It searches for include files from `/usr/include/c++/13` or according to the version, and library files in `/usr/lib/gcc/x86_64-linux-gnu/13`
 - How do you find out?
 
+  - I found out by running `find /usr -name iostream` and `find /usr -name libstdc++.so`
 ## C++ Package Managers
 
 - Why are there so many C++ package managers?
