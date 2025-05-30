@@ -41,13 +41,16 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 # These files will have .d instead of .o as the output.
 CPPFLAGS := $(INC_FLAGS) -MMD -MP
 
-all: $(BUILD_DIR)/server $(BUILD_DIR)/client
+all: $(BUILD_DIR)/server $(BUILD_DIR)/client $(BUILD_DIR)/log
 	
 $(BUILD_DIR)/server: $(BUILD_DIR)/src/server-main.cc.o $(NON_MAIN_OBJS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(BUILD_DIR)/src/server-main.cc.o $(NON_MAIN_OBJS) -o $(BUILD_DIR)/server $(LDFLAGS)
 
 $(BUILD_DIR)/client: $(BUILD_DIR)/src/client-main.cc.o $(NON_MAIN_OBJS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(BUILD_DIR)/src/client-main.cc.o $(NON_MAIN_OBJS) -o $(BUILD_DIR)/client $(LDFLAGS)
+
+$(BUILD_DIR)/log: src/spdlog-hello-world-main.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ -o $@ -lfmt -lspdlog
 
 $(BUILD_DIR)/%.cc.o: %.cc
 	mkdir -p $(dir $@)

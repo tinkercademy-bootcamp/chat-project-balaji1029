@@ -13,7 +13,7 @@
   - `g++ src/spdlog-hello-world-main.cc -lfmt -lspdlog`
 - What do you need to change in your makefile to use this library?
 
-  - We just have to add the same into the recipe of the targets where this file is required
+  - Just add the flags `-lfmt -lspdlog` to the compilation commands where needed
 - How many different ways can this library be added into your project?
 
   - This can be created as an object file and then linked seperately or just linked directly, or given as a library along with the libraries in g++ and include in the include.h so the compiler includes it automatically
