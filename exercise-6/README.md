@@ -16,7 +16,7 @@
   - Just add the flags `-lfmt -lspdlog` to the compilation commands where needed
 - How many different ways can this library be added into your project?
 
-  - This can be created as an object file and then linked seperately or just linked directly, or given as a library along with the libraries in g++ and include in the include.h so the compiler includes it automatically
+  - This can be linked as a dynamically linked object like previous question or statically by building it ourselves from the code
 - What are the tradeoffs in the different ways?
 
   - The second way requires us to also send the g++ environment with the project, which can be done with a docker
