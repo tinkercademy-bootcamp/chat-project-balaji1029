@@ -19,7 +19,7 @@
   - This can be linked as a dynamically linked object like previous question or statically by building it ourselves from the code
 - What are the tradeoffs in the different ways?
 
-  - The second way requires us to also send the g++ environment with the project, which can be done with a docker
+  - Building it ourselves and including to the source code adds to the size of the executable whereas dynamic linking can lead to sharing library code when two or more executables are using the library simultaneously and also reduced executable size
 - Why are there so many different ways to do it?
 
   - For flexibility and use according to the use-case
