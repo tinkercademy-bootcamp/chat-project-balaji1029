@@ -10,7 +10,7 @@
   library with various sink types and formatting options
 - How do you compile this file using the `g++` CLI?
 
-  - Just by including this file in the command-line argument of `g++`
+  - `g++ src/spdlog-hello-world-main.cc -lfmt -lspdlog`
 - What do you need to change in your makefile to use this library?
 
   - We just have to add the same into the recipe of the targets where this file is required
