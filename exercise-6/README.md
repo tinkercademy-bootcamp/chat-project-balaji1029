@@ -22,7 +22,7 @@
   - Building it ourselves and including to the source code adds to the size of the executable whereas dynamic linking can lead to sharing library code when two or more executables are using the library simultaneously and also reduced executable size
 - Why are there so many different ways to do it?
 
-  - For flexibility and use according to the use-case
+  - For different use-cases as dynamic speed vs static compilation size trade-off
   
 ## Static Linking vs Dynamic Linking
 
