@@ -1,10 +1,14 @@
 #include <unistd.h>
+#include <sys/epoll.h>
+#include <iostream>
 
 #include <spdlog/spdlog.h>
 
 #include "../net/chat-sockets.h"
 #include "../utils.h"
 #include "chat-server.h"
+
+#define MAX_EVENTS 32
 
 tt::chat::server::Server::Server(int port)
     : socket_(tt::chat::net::create_socket()),
@@ -16,6 +20,8 @@ tt::chat::server::Server::Server(int port)
 
   auto err_code = bind(socket_, (sockaddr *)&address_, sizeof(address_));
   check_error(err_code < 0, "bind failed\n");
+  
+  check_error(fcntl(socket_, F_SETFL, fcntl(socket_, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
 
   err_code = listen(socket_, 3);
   check_error(err_code < 0, "listen failed\n");
@@ -28,10 +34,42 @@ tt::chat::server::Server::~Server() { close(socket_); }
 void tt::chat::server::Server::handle_connections() {
   socklen_t address_size = sizeof(address_);
 
+  struct epoll_event events[MAX_EVENTS];
+
+
+  int epfd = epoll_create1(EPOLL_CLOEXEC);
+  check_error(epfd == -1, "epoll_create1 failed");
+
+  struct epoll_event ev;
+	ev.events = EPOLLIN | EPOLLET;
+	ev.data.fd = socket_;
+  
+  // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1, "epoll_ctl error\n");
+
+  if (epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1) {
+    perror("epoll_ctl");
+    throw std::runtime_error("epoll_ctl error");
+  }
+
   while (true) {
-    int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
-    tt::chat::check_error(accepted_socket < 0, "Accept error n ");
-    handle_accept(accepted_socket);
+    int nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
+
+    for (int i=0; i < nfds; i++) {
+      if (events[i].data.fd == socket_) {
+        int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
+        tt::chat::check_error(accepted_socket < 0, "Accept error n ");
+        handle_accept(accepted_socket);
+
+        check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
+
+
+        struct epoll_event ev;
+        ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
+        ev.data.fd = accepted_socket;
+        
+        check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1, "epoll_ctl error\n");
+      } 
+    }
   }
 }
 
