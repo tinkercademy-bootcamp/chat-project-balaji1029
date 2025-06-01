@@ -36,9 +36,9 @@ void tt::chat::server::Server::handle_connections() {
 
   struct epoll_event events[MAX_EVENTS];
 
-
-  int epfd = epoll_create1(EPOLL_CLOEXEC);
-  check_error(epfd == -1, "epoll_create1 failed");
+  int epfd;
+  
+  check_error((epfd = epoll_create1(EPOLL_CLOEXEC)) == -1, "epoll_create1 failed");
 
   struct epoll_event ev;
 	ev.events = EPOLLIN | EPOLLET;
@@ -60,14 +60,18 @@ void tt::chat::server::Server::handle_connections() {
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
         handle_accept(accepted_socket);
 
-        check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
+        // check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
 
 
-        struct epoll_event ev;
-        ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
-        ev.data.fd = accepted_socket;
+        // struct epoll_event ev;
+        // ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
+        // ev.data.fd = accepted_socket;
         
-        check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1, "epoll_ctl error\n");
+        // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1, "epoll_ctl error\n");
+        // if (epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1) {
+        //   perror("epoll_ctl");
+        //   throw std::runtime_error("epoll_ctl error");
+        // }
       } 
     }
   }

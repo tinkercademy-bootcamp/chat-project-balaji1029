@@ -15,7 +15,7 @@ std::string tt::chat::client::Client::send_and_receive_message(
   char recv_buffer[kBufferSize] = {0};
 
   // Send the message to the server
-  send(socket_, message.c_str(), message.size(), 0);
+  send(socket_, message.c_str(), message.size()+1, 0);
   std::cout << "Sent: " << message << "\n";
 
   // Receive response from the server

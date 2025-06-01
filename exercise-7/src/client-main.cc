@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <spdlog/spdlog.h>
+
 #include "client/chat-client.h"
 
 namespace {
@@ -33,6 +35,8 @@ int main(int argc, char *argv[]) {
   tt::chat::client::Client client{kPort, kServerAddress};
 
   std::string response = client.send_and_receive_message(message);
+
+  SPDLOG_INFO("Received back: {}", response);
 
   return 0;
 }
