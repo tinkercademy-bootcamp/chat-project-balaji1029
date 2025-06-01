@@ -35,7 +35,9 @@ int main(int argc, char *argv[]) {
 
   std::string message = read_args(argc, argv);
 
+  
   tt::chat::client::Client client{kPort, kServerAddress};
+  client.send_and_receive_message(message);
 
   while (true) {
     std::cout << "Enter the message: " << std::endl;

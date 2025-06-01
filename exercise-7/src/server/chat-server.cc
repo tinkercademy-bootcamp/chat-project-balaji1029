@@ -1,6 +1,8 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <iostream>
+#include <map>
+#include <optional>
 
 #include <spdlog/spdlog.h>
 
@@ -58,7 +60,7 @@ void tt::chat::server::Server::handle_connections() {
       if (events[i].data.fd == socket_) {
         int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
-        handle_accept(accepted_socket);
+        usernames[accepted_socket] = handle_accept(accepted_socket, true).value_or("");
 
         struct epoll_event ev;
         ev.events = EPOLLIN | EPOLLET;
@@ -84,20 +86,29 @@ void tt::chat::server::Server::set_socket_options(int sock, int opt) {
   check_error(err_code < 0, "setsockopt() error\n");
 }
 
-void tt::chat::server::Server::handle_accept(int sock) {
+std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, bool first_message) {
   using namespace tt::chat;
+
+  std::optional<std::string> mesg;
 
   char buffer[kBufferSize] = {0};
   ssize_t read_size = read(sock, buffer, kBufferSize);
 
   if (read_size > 0) {
-    SPDLOG_INFO("Received: {}", buffer);
-    send(sock, buffer, read_size, 0);
-    SPDLOG_INFO("Echo message sent");
+    mesg = buffer;
+    if (!first_message) {
+      SPDLOG_INFO("Received from {}: {}", usernames[sock], buffer);
+      send(sock, buffer, read_size, 0);
+      SPDLOG_INFO("Echo message sent");
+    } else {
+      send(sock, buffer, read_size, 0);
+      SPDLOG_INFO("{} connected", buffer);
+    }
   } else if (read_size == 0) {
-    SPDLOG_INFO("Client disconnected.");
+    SPDLOG_INFO("{} disconnected.", usernames[sock]);
   } else {
     SPDLOG_ERROR("Read error on client socket {}", socket_);
   }
   // close(sock);
+  return mesg;
 }
