@@ -35,14 +35,18 @@ int main(int argc, char *argv[]) {
 
   std::string message = read_args(argc, argv);
 
-  
   tt::chat::client::Client client{kPort, kServerAddress};
-  client.send_and_receive_message(message);
+  std::string response = client.send_and_receive_message(message);
+
+  if (response == "unavailable") {
+    SPDLOG_ERROR("Username {} taken", message);
+    return 1;
+  }
 
   while (true) {
     std::cout << "Enter the message: ";
     std::cin >> message;
-    std::string response = client.send_and_receive_message(message);
+    response = client.send_and_receive_message(message);
     SPDLOG_INFO("Received back: {}", response);
   }
 

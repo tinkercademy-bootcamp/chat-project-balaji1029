@@ -60,7 +60,12 @@ void tt::chat::server::Server::handle_connections() {
       if (events[i].data.fd == socket_) {
         int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
-        usernames[accepted_socket] = handle_accept(accepted_socket, true).value_or("");
+        std::string username = handle_accept(accepted_socket, true).value_or("");
+        if (username == "username") {
+          close(accepted_socket);
+          continue;
+        }
+        usernames[accepted_socket] = username;
 
         struct epoll_event ev;
         ev.events = EPOLLIN | EPOLLET;
@@ -101,10 +106,18 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
       send(sock, buffer, read_size, 0);
       SPDLOG_INFO("Echo message sent");
     } else {
+      for (auto username: usernames) {
+        if (username.second == buffer) {
+          send(sock, "unavailable", sizeof("unavailable"), 0);
+          SPDLOG_INFO("{} tried to connect again", buffer);
+          return "unavailable";
+        }
+      }
       send(sock, buffer, read_size, 0);
       SPDLOG_INFO("{} connected", buffer);
     }
   } else if (read_size == 0) {
+    close(sock);
     SPDLOG_INFO("{} disconnected.", usernames[sock]);
   } else {
     SPDLOG_ERROR("Read error on client socket {}", socket_);
