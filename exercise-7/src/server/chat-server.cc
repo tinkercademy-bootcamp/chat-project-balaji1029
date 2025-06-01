@@ -60,19 +60,19 @@ void tt::chat::server::Server::handle_connections() {
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
         handle_accept(accepted_socket);
 
-        // check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
-
-
-        // struct epoll_event ev;
-        // ev.events = EPOLLIN | EPOLLRDHUP | EPOLLET | EPOLLHUP;
-        // ev.data.fd = accepted_socket;
+        struct epoll_event ev;
+        ev.events = EPOLLIN | EPOLLET;
+        ev.data.fd = accepted_socket;
         
-        // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1, "epoll_ctl error\n");
-        // if (epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1) {
-        //   perror("epoll_ctl");
-        //   throw std::runtime_error("epoll_ctl error");
-        // }
-      } 
+        // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1, "epoll_ctl error\n");
+
+        if (epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1) {
+          perror("epoll_ctl");
+          throw std::runtime_error("epoll_ctl error");
+        }
+      } else {
+        handle_accept(events[i].data.fd);
+      }
     }
   }
 }
@@ -99,5 +99,5 @@ void tt::chat::server::Server::handle_accept(int sock) {
   } else {
     SPDLOG_ERROR("Read error on client socket {}", socket_);
   }
-  close(sock);
+  // close(sock);
 }

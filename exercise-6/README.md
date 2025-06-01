@@ -32,7 +32,7 @@
 - What are the tradeoffs?
 
   - Static Linking leads to a lot of redundant space in the memory as well as the executable size, whereas dynamic linking leads to slower runtime as it includes linking during runtime
-- How do you enable static linking or dynamic linking in your makefile?
+- How do you enable static linking or  dynamic linking in your makefile?
 
   - To compile a library file to a dynamically linker file,
   ```bash

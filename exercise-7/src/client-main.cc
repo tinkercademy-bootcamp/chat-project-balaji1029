@@ -6,10 +6,13 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/epoll.h>
+#include <iostream>
 
 #include <spdlog/spdlog.h>
 
 #include "client/chat-client.h"
+#include "../utils.h"
 
 namespace {
 std::string read_args(int argc, char *argv[]) {
@@ -34,9 +37,12 @@ int main(int argc, char *argv[]) {
 
   tt::chat::client::Client client{kPort, kServerAddress};
 
-  std::string response = client.send_and_receive_message(message);
-
-  SPDLOG_INFO("Received back: {}", response);
+  while (true) {
+    std::cout << "Enter the message: " << std::endl;
+    std::cin >> message;
+    std::string response = client.send_and_receive_message(message);
+    SPDLOG_INFO("Received back: {}", response);
+  }
 
   return 0;
 }
