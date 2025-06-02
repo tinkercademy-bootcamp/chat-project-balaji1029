@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <iostream>
+#include <ncurses.h>
 
 #include <spdlog/spdlog.h>
 

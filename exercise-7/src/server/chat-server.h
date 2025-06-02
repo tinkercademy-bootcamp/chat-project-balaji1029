@@ -6,6 +6,8 @@
 #include <map>
 #include <optional>
 
+#include "chat-channel.h"
+
 namespace tt::chat::server {
 
 class Server {
@@ -18,6 +20,8 @@ private:
   int socket_;
   sockaddr_in address_;
   std::map<int, std::string> usernames;
+  std::vector<Channel> channels;
+  std::map<int, int> user_to_channel;
 
   static constexpr int kBufferSize = 1024;
 

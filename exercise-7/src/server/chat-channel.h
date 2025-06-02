@@ -3,14 +3,16 @@
 
 #include <netinet/in.h>
 #include <set>
+#include <string>
 
 namespace tt::chat::server {
 
 class Channel {
+  std::string name;
   std::set<int> users_fds;
 
 public:
-  Channel(int fd);
+  Channel(std::string name);
   int add_user(int fd);
   int remove_user(int fd);
 };

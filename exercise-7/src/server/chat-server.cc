@@ -18,6 +18,8 @@ tt::chat::server::Server::Server(int port)
   using namespace tt::chat;
   set_socket_options(socket_, 1);
 
+  channels.push_back(Channel("Default"));
+
   address_.sin_addr.s_addr = INADDR_ANY;
 
   auto err_code = bind(socket_, (sockaddr *)&address_, sizeof(address_));
