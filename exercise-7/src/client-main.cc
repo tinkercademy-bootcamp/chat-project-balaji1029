@@ -54,9 +54,11 @@ int main(int argc, char *argv[]) {
   }
 
   std::string channel_num_str = client.receive_message();
+  std::cout << channel_num_str << std::endl;
   
   for (int i=0; i<std::stoi(channel_num_str); i++) {
     client.push_channel_name(client.receive_message());
+    std::cout << i << " received" << std::endl; 
   }
 
   // for (int i=0; i<client.get_channel_count(); i++) {
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]) {
   // }
 
   initscr();
+  set_escdelay(25);
   noecho();
   cbreak();
   keypad(stdscr, TRUE);
@@ -84,8 +87,16 @@ int main(int argc, char *argv[]) {
   int input_pos = 0;
   int scroll_offset = 0;
 
-  char key = 27; // ESC
+  keypad(input_win, TRUE);
+
+  int key = 27; // ESC
   do {
+
+    // Refresh windows
+		// wrefresh(channel_win);
+		// wrefresh(chat_win);
+		// wrefresh(input_win);
+
     getmaxyx(stdscr, height, width);
     right_width = width - LEFT_WIDTH;
     right_height = height - INPUT_HEIGHT;
@@ -118,7 +129,7 @@ int main(int argc, char *argv[]) {
       if (key == 27) {
         mode = CHOICE;
         curs_set(0);
-      } else if ((key == KEY_BACKSPACE || key == 127 || key == '\b') && input_pos > 0) {
+      } else if ((key == KEY_BACKSPACE || key == 74 || key == '\b') && input_pos > 0) {
         input_string.erase(input_string.begin() + input_pos - 1);
         input_pos--;
       } else if (key == '\n') {
@@ -131,8 +142,12 @@ int main(int argc, char *argv[]) {
         input_pos++;
       } else if (input_pos > 0 && key == KEY_LEFT) {
         input_pos--;
-      } else if (input_pos < input_string.size()-1 && key == KEY_RIGHT) {
+      } else if (input_pos < input_string.size() && key == KEY_RIGHT) {
         input_pos++;
+      } else if (key == KEY_HOME) {
+        input_pos = 0;
+      } else if (key == KEY_END) {
+        input_pos = input_string.size();
       }
     } else if (mode == CHANNELS) {
       if (key == 27) {
@@ -153,6 +168,7 @@ int main(int argc, char *argv[]) {
 		werase(chat_win);
 		box(chat_win, 0, 0);
 		mvwprintw(chat_win, 0, 2, (mode == CHAT) ? " Chat [F] " : " Chat ");
+    mvwprintw(chat_win, 1, 1, "Key: %d", key);
 
     // Draw input
 		werase(input_win);

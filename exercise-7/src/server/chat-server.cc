@@ -66,6 +66,8 @@ void tt::chat::server::Server::handle_connections() {
         // The accepted file descriptor for the new user
         int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
+        
+        fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK);
 
         // Accept the username
         std::string username = handle_accept(accepted_socket, true).value_or("");
@@ -87,6 +89,7 @@ void tt::chat::server::Server::handle_connections() {
 
         for (Channel& channel: channels) {
           send_message(accepted_socket, channel.get_name());
+          SPDLOG_INFO("Channel {} sent", channel.get_name());
         }
 
         struct epoll_event ev;
@@ -138,10 +141,10 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
     }
   } else if (read_size == 0) {
     channels[user_to_channel[sock]].remove_user(sock);
+    SPDLOG_INFO("{} disconnected.", usernames[sock]);
     usernames.erase(usernames.find(sock));
     user_to_channel.erase(user_to_channel.find(sock));
     close(sock);
-    SPDLOG_INFO("{} disconnected.", usernames[sock]);
   } else {
     SPDLOG_ERROR("Read error on client socket {}", socket_);
   }
