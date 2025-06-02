@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
   const std::string kServerAddress = "127.0.0.1";
 
   std::string message = read_args(argc, argv);
+  std::vector<std::string> lines;
 
   tt::chat::client::Client client{kPort, kServerAddress};
   std::string response = client.send_and_receive_message(message);
@@ -80,10 +81,45 @@ int main(int argc, char *argv[]) {
   WINDOW* input_win = newwin(INPUT_HEIGHT, right_width, right_height, LEFT_WIDTH);
 
   Mode mode = CHOICE;
-  char input[256] = "";
+  std::string input_string;
   int input_pos = 0;
+  int scroll_offset = 0;
 
   char key = 27; // ESC
+  do {
+    getmaxyx(stdscr, height, width);
+    right_width = width - LEFT_WIDTH;
+    right_height = height - INPUT_HEIGHT;
+
+    wresize(channel_win, height, LEFT_WIDTH);
+    wresize(chat_win, right_height, right_width);
+    wresize(input_win, INPUT_HEIGHT, right_width);
+    mvwin(input_win, right_height, LEFT_WIDTH);
+
+    if (mode == CHOICE) {
+      if (key == 'w') {
+        mode = CHANNELS;
+      } else if (key == 'c') {
+        mode = CHAT;
+      } else if (key == 'i') {
+        mode = INPUT;
+      } else if (key == 'q') {
+        break;
+      }
+    } else if (mode == CHAT) {
+      if (key == 27) {
+        mode = CHOICE;
+      } else if ((key == KEY_UP || key == 'k') && scroll_offset < lines.size() - 1) {
+        scroll_offset++;
+      } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
+        scroll_offset--;
+      }
+    } else if (mode == INPUT) {
+      
+    }
+
+
+  } while (((key = getch()) != 'q') || (mode != CHOICE));
 
   delwin(channel_win);
   delwin(chat_win);
