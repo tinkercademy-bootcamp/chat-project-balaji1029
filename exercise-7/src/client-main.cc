@@ -15,7 +15,6 @@
 #include "client/chat-client.h"
 #include "../utils.h"
 
-namespace {
 std::string read_args(int argc, char *argv[]) {
   using namespace tt::chat;
   std::string message = "Hello from client";
@@ -28,7 +27,6 @@ std::string read_args(int argc, char *argv[]) {
   }
   return message;
 }
-} // namespace
 
 int main(int argc, char *argv[]) {
   const int kPort = 8080;
@@ -39,11 +37,19 @@ int main(int argc, char *argv[]) {
   tt::chat::client::Client client{kPort, kServerAddress};
   std::string response = client.send_and_receive_message(message);
 
-  
-
   if (response == "unavailable") {
     SPDLOG_ERROR("Username {} taken", message);
     return 1;
+  }
+
+  std::string channel_num_str = client.receive_message();
+  
+  for (int i=0; i<std::stoi(channel_num_str); i++) {
+    client.push_channel_name(client.receive_message());
+  }
+
+  for (int i=0; i<client.get_channel_count(); i++) {
+    std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
   }
 
   while (true) {

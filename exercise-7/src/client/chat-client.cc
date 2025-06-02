@@ -12,22 +12,46 @@ tt::chat::client::Client::Client(int port,
 std::string tt::chat::client::Client::send_and_receive_message(
     const std::string &message) {
   using namespace tt::chat;
-  char recv_buffer[kBufferSize] = {0};
 
   // Send the message to the server
-  send(socket_, message.c_str(), message.size()+1, 0);
-  std::cout << "Sent: " << message << "\n";
+  send_message(message);
+
+  // Receive response from the server
+  return receive_message();
+}
+
+int tt::chat::client::Client::send_message(const std::string& message) {
+  return send(socket_, message.c_str(), message.size()+1, 0) > 0 ? 0 : -1;
+}
+
+void tt::chat::client::Client::push_channel_name(const std::string &channel_name) {
+  channel_names.push_back(channel_name);
+}
+
+int tt::chat::client::Client::get_channel_count() {
+  return channel_names.size();
+}
+
+std::string tt::chat::client::Client::get_channel_by_id(const int &id) {
+  return channel_names.at(id);
+}
+
+std::string tt::chat::client::Client::receive_message() {
+  using namespace tt::chat;
+  char recv_buffer[kBufferSize] = {0};
 
   // Receive response from the server
   ssize_t read_size = read(socket_, recv_buffer, kBufferSize);
   if (read_size > 0) {
     return std::string(recv_buffer);
   } else if (read_size == 0) {
-    return "Server closed connection.\n";
+    return SERVER_ERROR;
   } else {
-    return "Read error.\n";
+    return READ_ERROR;
   }
 }
+
+
 
 tt::chat::client::Client::~Client() { close(socket_); }
 

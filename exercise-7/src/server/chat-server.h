@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <optional>
+#include <vector>
 
 #include "chat-channel.h"
 
