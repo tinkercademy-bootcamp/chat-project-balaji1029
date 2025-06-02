@@ -7,7 +7,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/epoll.h>
-#include <iostream>
 #include <ncurses.h>
 
 #include <spdlog/spdlog.h>
@@ -60,9 +59,9 @@ int main(int argc, char *argv[]) {
     client.push_channel_name(client.receive_message());
   }
 
-  for (int i=0; i<client.get_channel_count(); i++) {
-    std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
-  }
+  // for (int i=0; i<client.get_channel_count(); i++) {
+  //   std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
+  // }
 
   initscr();
   noecho();
@@ -103,6 +102,7 @@ int main(int argc, char *argv[]) {
         mode = CHAT;
       } else if (key == 'i') {
         mode = INPUT;
+        curs_set(1);
       } else if (key == 'q') {
         break;
       }
@@ -115,22 +115,72 @@ int main(int argc, char *argv[]) {
         scroll_offset--;
       }
     } else if (mode == INPUT) {
-      
+      if (key == 27) {
+        mode = CHOICE;
+        curs_set(0);
+      } else if ((key == KEY_BACKSPACE || key == 127 || key == '\b') && input_pos > 0) {
+        input_string.erase(input_string.begin() + input_pos - 1);
+        input_pos--;
+      } else if (key == '\n') {
+        // work with it later
+        lines.push_back(std::move(input_string));
+        input_string = "";
+        input_pos = 0;
+      } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
+        input_string.push_back(key);
+        input_pos++;
+      } else if (input_pos > 0 && key == KEY_LEFT) {
+        input_pos--;
+      } else if (input_pos < input_string.size()-1 && key == KEY_RIGHT) {
+        input_pos++;
+      }
+    } else if (mode == CHANNELS) {
+      if (key == 27) {
+        mode = CHOICE;
+      }
     }
 
+    // Draw channel box
+		werase(channel_win);
+		box(channel_win, 0, 0);
+		mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
+
+    for (int i = 0; i < client.get_channel_count(); i++) {
+      mvwprintw(channel_win, i+1, 1, "%s", client.get_channel_by_id(i).c_str());
+    }
+
+    // Draw chat box
+		werase(chat_win);
+		box(chat_win, 0, 0);
+		mvwprintw(chat_win, 0, 2, (mode == CHAT) ? " Chat [F] " : " Chat ");
+
+    // Draw input
+		werase(input_win);
+		box(input_win, 0, 0);
+		mvwprintw(input_win, 0, 2, " Input (%s Mode) ", mode == INPUT ? "Insert" : "Nav");
+		mvwprintw(input_win, 1, 1, "%s", input_string.c_str());
+		if (mode == INPUT) {
+			wmove(input_win, 1, 1 + input_pos);
+		}
+
+    // Refresh windows
+		wrefresh(channel_win);
+		wrefresh(chat_win);
+		wrefresh(input_win);
 
   } while (((key = getch()) != 'q') || (mode != CHOICE));
 
   delwin(channel_win);
   delwin(chat_win);
   delwin(input_win);
+  endwin();
 
-  while (true) {
-    std::cout << "Enter the message: ";
-    std::cin >> message;
-    response = client.send_and_receive_message(message);
-    SPDLOG_INFO("Received back: {}", response);
-  }
+  // while (true) {
+  //   // std::cout << "Enter the message: ";
+  //   std::cin >> message;
+  //   response = client.send_and_receive_message(message);
+  //   SPDLOG_INFO("Received back: {}", response);
+  // }
 
   return 0;
 }

@@ -51,8 +51,6 @@ std::string tt::chat::client::Client::receive_message() {
   }
 }
 
-
-
 tt::chat::client::Client::~Client() { close(socket_); }
 
 sockaddr_in tt::chat::client::Client::create_server_address(

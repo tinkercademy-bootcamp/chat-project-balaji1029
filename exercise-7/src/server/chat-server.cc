@@ -137,6 +137,9 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
       SPDLOG_INFO("{} connected", buffer);
     }
   } else if (read_size == 0) {
+    channels[user_to_channel[sock]].remove_user(sock);
+    usernames.erase(usernames.find(sock));
+    user_to_channel.erase(user_to_channel.find(sock));
     close(sock);
     SPDLOG_INFO("{} disconnected.", usernames[sock]);
   } else {

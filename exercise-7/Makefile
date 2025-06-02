@@ -14,7 +14,7 @@ CXXFLAGS += $(CXX_DEBUG_FLAGS)
 # The linker flags. These are passed to the linker when we link our object files together.
 LDFLAGS := -fsanitize=address
 
-LIBS:= fmt spdlog
+LIBS:= fmt spdlog ncurses
 LIB_FLAGS := $(addprefix -l,$(LIBS))
 LDFLAGS += $(LIB_FLAGS)
 
