@@ -39,6 +39,8 @@ int main(int argc, char *argv[]) {
   tt::chat::client::Client client{kPort, kServerAddress};
   std::string response = client.send_and_receive_message(message);
 
+  
+
   if (response == "unavailable") {
     SPDLOG_ERROR("Username {} taken", message);
     return 1;

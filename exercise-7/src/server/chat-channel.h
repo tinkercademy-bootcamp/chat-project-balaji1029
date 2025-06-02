@@ -12,7 +12,8 @@ class Channel {
   std::set<int> users_fds;
 
 public:
-  Channel(std::string name);
+  Channel(std::string& name);
+  std::string get_name();
   int add_user(int fd);
   int remove_user(int fd);
 };

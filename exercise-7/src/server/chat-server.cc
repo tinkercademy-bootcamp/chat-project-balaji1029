@@ -16,8 +16,10 @@ tt::chat::server::Server::Server(int port)
     : socket_(tt::chat::net::create_socket()),
       address_(tt::chat::net::create_address(port)) {
   using namespace tt::chat;
+
   set_socket_options(socket_, 1);
 
+  // Create a default channel
   channels.push_back(Channel("Default"));
 
   address_.sin_addr.s_addr = INADDR_ANY;
@@ -25,11 +27,12 @@ tt::chat::server::Server::Server(int port)
   auto err_code = bind(socket_, (sockaddr *)&address_, sizeof(address_));
   check_error(err_code < 0, "bind failed\n");
   
+  // Make the socket non-blocking
   check_error(fcntl(socket_, F_SETFL, fcntl(socket_, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
 
   err_code = listen(socket_, 3);
   check_error(err_code < 0, "listen failed\n");
-
+  
   std::cout << "Server listening on port " << port << "\n";
 }
 
@@ -60,14 +63,31 @@ void tt::chat::server::Server::handle_connections() {
 
     for (int i=0; i < nfds; i++) {
       if (events[i].data.fd == socket_) {
+        // The accepted file descriptor for the new user
         int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
         tt::chat::check_error(accepted_socket < 0, "Accept error n ");
+
+        // Accept the username
         std::string username = handle_accept(accepted_socket, true).value_or("");
-        if (username == "username") {
+
+        // If the username is taken
+        if (username == "unavailable") {
           close(accepted_socket);
           continue;
         }
         usernames[accepted_socket] = username;
+        // Default Channel
+        user_to_channel[accepted_socket] = 0;
+        channels[0].add_user(accepted_socket);
+
+        // Send the number of channels and then the list of channels in different messages
+        int channel_num = channels.size();
+        std::string channel_num_str = std::to_string(channel_num);
+        send_message(accepted_socket, channel_num_str);
+
+        for (Channel& channel: channels) {
+          send_message(accepted_socket, channel.get_name());
+        }
 
         struct epoll_event ev;
         ev.events = EPOLLIN | EPOLLET;
@@ -124,4 +144,8 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
   }
   // close(sock);
   return mesg;
+}
+
+int tt::chat::server::Server::send_message(int sock, std::string message) {
+  return (send(sock, message.c_str(), message.size()+1, 0) > 0)? 0 : -1;
 }

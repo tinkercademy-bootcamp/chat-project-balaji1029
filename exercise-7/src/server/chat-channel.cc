@@ -4,7 +4,9 @@
 #include "../utils.h"
 #include "chat-channel.h"
 
-tt::chat::server::Channel::Channel(std::string name) : name(name) {}
+tt::chat::server::Channel::Channel(std::string& name) : name(name) {}
+
+std::string tt::chat::server::Channel::get_name() {return name;}
 
 int tt::chat::server::Channel::add_user(int fd) {
   auto fd_ptr = users_fds.find(fd);
