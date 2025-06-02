@@ -15,6 +15,17 @@
 #include "client/chat-client.h"
 #include "../utils.h"
 
+#define LEFT_WIDTH 35
+#define INPUT_HEIGHT 3
+#define MAX_LINES 1000
+
+enum Mode {
+  CHOICE,
+  CHANNELS,
+  CHAT,
+  INPUT,
+};
+
 std::string read_args(int argc, char *argv[]) {
   using namespace tt::chat;
   std::string message = "Hello from client";
@@ -51,6 +62,32 @@ int main(int argc, char *argv[]) {
   for (int i=0; i<client.get_channel_count(); i++) {
     std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
   }
+
+  initscr();
+  noecho();
+  cbreak();
+  keypad(stdscr, TRUE);
+  curs_set(0);
+
+  int height, width;
+  getmaxyx(stdscr, height, width);
+
+  int right_width = width - LEFT_WIDTH;
+  int right_height = width - INPUT_HEIGHT;
+
+  WINDOW* channel_win = newwin(height, LEFT_WIDTH, 0, 0);
+  WINDOW* chat_win = newwin(right_height, right_width, 0, LEFT_WIDTH);
+  WINDOW* input_win = newwin(INPUT_HEIGHT, right_width, right_height, LEFT_WIDTH);
+
+  Mode mode = CHOICE;
+  char input[256] = "";
+  int input_pos = 0;
+
+  char key = 27; // ESC
+
+  delwin(channel_win);
+  delwin(chat_win);
+  delwin(input_win);
 
   while (true) {
     std::cout << "Enter the message: ";

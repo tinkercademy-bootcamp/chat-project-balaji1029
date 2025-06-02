@@ -36,7 +36,8 @@ int main() {
 	int scroll_offset = 0;
 
 	int ch;
-	while ((ch = getch()) != 'q') {
+	do {
+		// std::cout << "Heyyy";
 		getmaxyx(stdscr, height, width);
 		right_width = width - LEFT_WIDTH;
 		right_height = height - INPUT_HEIGHT;
@@ -62,24 +63,24 @@ int main() {
 					}
 			}
 		} else if (mode == INPUT_MODE) {
-			if (ch == 27) { // ESC
-					mode = NAV_MODE;
-					curs_set(0);
-			} else if ((ch == KEY_BACKSPACE || ch == 127 || ch == '\b') && input_pos > 0) {
-					input[--input_pos] = '\0';
-			} else if (ch == '\n') {
-					if (num_lines < MAX_LINES) {
-							lines[num_lines] = strdup(input);
-							num_lines++;
-					}
-					input[0] = '\0';
-					input_pos = 0;
-					scroll_offset = 0; // reset scroll to show latest
-			} else if (input_pos < sizeof(input) - 1 && ch >= 32 && ch <= 126) {
-					input[input_pos++] = ch;
-					input[input_pos] = '\0';
+				if (ch == 27) { // ESC
+						mode = NAV_MODE;
+						curs_set(0);
+				} else if ((ch == KEY_BACKSPACE || ch == 127 || ch == '\b') && input_pos > 0) {
+						input[--input_pos] = '\0';
+				} else if (ch == '\n') {
+						if (num_lines < MAX_LINES) {
+								lines[num_lines] = strdup(input);
+								num_lines++;
+						}
+						input[0] = '\0';
+						input_pos = 0;
+						scroll_offset = 0; // reset scroll to show latest
+				} else if (input_pos < sizeof(input) - 1 && ch >= 32 && ch <= 126) {
+						input[input_pos++] = ch;
+						input[input_pos] = '\0';
+				}
 			}
-		}
 
 		// Draw left
 		werase(left_win);
@@ -116,7 +117,7 @@ int main() {
 		wrefresh(left_win);
 		wrefresh(right_win);
 		wrefresh(input_win);
-	}
+	} while ((ch = getch()) != 'q');
 
 	// Cleanup
 	for (int i = 0; i < num_lines; i++) free(lines[i]);
