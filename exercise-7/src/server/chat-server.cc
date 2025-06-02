@@ -70,9 +70,7 @@ void tt::chat::server::Server::handle_connections() {
         struct epoll_event ev;
         ev.events = EPOLLIN | EPOLLET;
         ev.data.fd = accepted_socket;
-        
-        // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1, "epoll_ctl error\n");
-
+        // check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
         if (epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1) {
           perror("epoll_ctl");
           throw std::runtime_error("epoll_ctl error");
