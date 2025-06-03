@@ -51,8 +51,6 @@ void tt::chat::server::Server::handle_connections() {
 	ev.events = EPOLLIN | EPOLLET;
 	ev.data.fd = socket_;
   
-  // check_error(epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1, "epoll_ctl error\n");
-
   if (epoll_ctl(epfd, EPOLL_CTL_ADD, socket_, &ev) == -1) {
     perror("epoll_ctl");
     throw std::runtime_error("epoll_ctl error");
@@ -63,49 +61,162 @@ void tt::chat::server::Server::handle_connections() {
 
     for (int i=0; i < nfds; i++) {
       if (events[i].data.fd == socket_) {
-        // The accepted file descriptor for the new user
+        // New connection - handle initial setup
         int accepted_socket = accept(socket_, (sockaddr *)&address_, &address_size);
-        tt::chat::check_error(accepted_socket < 0, "Accept error n ");
+        tt::chat::check_error(accepted_socket < 0, "Accept error");
         
         fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK);
 
-        // Accept the username
-        std::string username = handle_accept(accepted_socket, true).value_or("");
-
-        // If the username is taken
+        // Handle initial username setup
+        std::string username = handle_initial_connection(accepted_socket);
+        
         if (username == "unavailable") {
           close(accepted_socket);
           continue;
         }
+        
+        // Store user info
         usernames[accepted_socket] = username;
-        // Default Channel
-        user_to_channel[accepted_socket] = 0;
+        user_to_channel[accepted_socket] = 0; // Default channel
         channels[0].add_user(accepted_socket);
 
-        // Send the number of channels and then the list of channels in different messages
-        int channel_num = channels.size();
-        std::string channel_num_str = std::to_string(channel_num);
-        send_message(accepted_socket, channel_num_str);
-        receive_message(accepted_socket);
+        // Send channel information to new client
+        send_channel_info(accepted_socket);
 
-        for (Channel& channel: channels) {
-          send_message(accepted_socket, channel.get_name());
-          SPDLOG_INFO("Channel {} sent", channel.get_name());
-          receive_message(accepted_socket);
-        }
-
+        // Add to epoll for future message handling
         struct epoll_event ev;
         ev.events = EPOLLIN | EPOLLET;
         ev.data.fd = accepted_socket;
-        // check_error(fcntl(accepted_socket, F_SETFL, fcntl(accepted_socket, F_GETFL, 0) | O_NONBLOCK) == -1, "Non-blocking error");
         if (epoll_ctl(epfd, EPOLL_CTL_ADD, accepted_socket, &ev) == -1) {
           perror("epoll_ctl");
           throw std::runtime_error("epoll_ctl error");
         }
       } else {
-        handle_accept(events[i].data.fd);
+        // Handle message from existing client
+        handle_client_message(events[i].data.fd);
       }
     }
+  }
+}
+
+std::string tt::chat::server::Server::handle_initial_connection(int sock) {
+  using namespace tt::chat;
+  
+  std::string username = receive_message(sock);
+  if (username.empty()) {
+    return "unavailable";
+  }
+
+  // Check if username is already taken
+  for (auto& [socket, existing_username] : usernames) {
+    if (existing_username == username) {
+      send_message(sock, "unavailable");
+      SPDLOG_INFO("{} tried to connect but username taken", username);
+      return "unavailable";
+    }
+  }
+
+  // Username is available
+  send_message(sock, username);
+  SPDLOG_INFO("{} connected", username);
+  return username;
+}
+
+void tt::chat::server::Server::send_channel_info(int sock) {
+  // Send number of channels
+  int channel_num = channels.size();
+  std::string channel_num_str = std::to_string(channel_num);
+  send_message(sock, channel_num_str);
+  receive_message(sock); // Wait for acknowledgment
+
+  // Send each channel name
+  for (Channel& channel : channels) {
+    send_message(sock, channel.get_name());
+    SPDLOG_INFO("Channel {} sent to user {}", channel.get_name(), usernames[sock]);
+    receive_message(sock); // Wait for acknowledgment
+  }
+}
+
+void tt::chat::server::Server::handle_client_message(int sock) {
+  using namespace tt::chat;
+
+  std::string message = receive_message(sock);
+  
+  if (message.empty()) {
+    // Client disconnected
+    handle_client_disconnect(sock);
+    return;
+  }
+
+  SPDLOG_INFO("Received from {}: {}", usernames[sock], message);
+
+  if (message[0] == 'c') {
+    // Create new channel: c:<channel-name>
+    std::string channel_name = message.substr(2);
+    int channel_id = channels.size();
+    channels.push_back(Channel(channel_name));
+    channels[channel_id].add_user(sock);
+    
+    // Move user from current channel to new one
+    channels[user_to_channel[sock]].remove_user(sock);
+    user_to_channel[sock] = channel_id;
+
+    // Notify all users about new channel
+    broadcast_to_all_users("c:" + channel_name);
+    
+    SPDLOG_INFO("Channel {} created by {}", channel_name, usernames[sock]);
+
+  } else if (message[0] == 'm') {
+    // Send message: m:<channel-id>:<message>
+    size_t first_colon = message.find(':', 2);
+    if (first_colon != std::string::npos) {
+      int channel_id = std::stoi(message.substr(2, first_colon - 2));
+      std::string actual_message = message.substr(first_colon + 1);
+      
+      // Broadcast message to all users in the channel
+      std::string formatted_message = "m:" + std::to_string(channel_id) + ":" + usernames[sock] + ":" + actual_message;
+      broadcast_to_channel(channel_id, formatted_message);
+      
+      SPDLOG_INFO("Message from {} in channel {}: {}", usernames[sock], channel_id, actual_message);
+    }
+
+  } else if (message[0] == 't') {
+    // Switch channel: t:<channel-id>
+    int new_channel_id = std::stoi(message.substr(2));
+    if (new_channel_id >= 0 && new_channel_id < channels.size()) {
+      // Remove from current channel
+      channels[user_to_channel[sock]].remove_user(sock);
+      
+      // Add to new channel
+      channels[new_channel_id].add_user(sock);
+      user_to_channel[sock] = new_channel_id;
+      
+      SPDLOG_INFO("{} switched to channel {}", usernames[sock], new_channel_id);
+    }
+  }
+}
+
+void tt::chat::server::Server::handle_client_disconnect(int sock) {
+  if (usernames.find(sock) != usernames.end()) {
+    channels[user_to_channel[sock]].remove_user(sock);
+    SPDLOG_INFO("{} disconnected.", usernames[sock]);
+    usernames.erase(sock);
+    user_to_channel.erase(sock);
+  }
+  close(sock);
+}
+
+void tt::chat::server::Server::broadcast_to_channel(int channel_id, const std::string& message) {
+  if (channel_id >= 0 && channel_id < channels.size()) {
+    for (int user_sock : channels[channel_id].get_users()) {
+      send_message(user_sock, message);
+    }
+  }
+}
+
+void tt::chat::server::Server::broadcast_to_all_users(const std::string& message) {
+  for (auto& [sock, username] : usernames) {
+    send_message(sock, message);
   }
 }
 
@@ -116,87 +227,26 @@ void tt::chat::server::Server::set_socket_options(int sock, int opt) {
   check_error(err_code < 0, "setsockopt() error\n");
 }
 
-std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, bool first_message) {
-  using namespace tt::chat;
-
-  std::optional<std::string> mesg;
-
-  char buffer[kBufferSize] = {0};
-  ssize_t read_size = read(sock, buffer, kBufferSize);
-
-  if (read_size > 0) {
-    mesg = buffer;
-    if (!first_message) {
-      SPDLOG_INFO("Received from {}: {}", usernames[sock], buffer);
-      send(sock, buffer, read_size, 0);
-      std::string message = buffer;
-      if (message[0] == 'c') {
-        // Message if of the form c:<channel-name>
-        int channel_id = channels.size();
-        channels.push_back(message.substr(2, message.size() - 2));
-        channels[channel_id].add_user(sock);
-        user_to_channel[sock] = channel_id;
-
-        for (auto [user, _]: usernames)  {
-          send_message(user, message);
-          receive_message(user);
-        }
-
-      } else if (message[0] == 'm') {
-        // Message is of the form m:<channel-id>:<message>
-        int index_of_first_colon = 1;
-        std::string message_without_first_prefix = message.substr(index_of_first_colon + 1, message.size() - index_of_first_colon - 1);
-        int index_of_second_colon = message_without_first_prefix.find_first_of(':');
-        int channel_id = std::stoi(message_without_first_prefix.substr(0, index_of_second_colon));
-        std::string actual_message = message_without_first_prefix.substr(index_of_second_colon + 1, message_without_first_prefix.size() - index_of_second_colon - 1);
-
-        for (int user: channels[channel_id].get_users()) {
-          send_message(user, "m:" + std::to_string(channel_id) + ":" + std::string(usernames[sock]) + ":" + actual_message);
-          receive_message(user);
-        }
-      } else if (message[0] == 't') {
-        int channel_id = std::stoi(message.substr(2, message.size() - 2));
-        channels[user_to_channel[sock]].remove_user(sock);
-        channels[channel_id].add_user(sock);
-        user_to_channel[sock] = channel_id;
-      }
-      // SPDLOG_INFO("Echo message sent");
-    } else {
-      for (auto username: usernames) {
-        if (username.second == buffer) {
-          send(sock, "unavailable", sizeof("unavailable"), 0);
-          SPDLOG_INFO("{} tried to connect again", buffer);
-          return "unavailable";
-        }
-      }
-      send(sock, buffer, read_size, 0);
-      SPDLOG_INFO("{} connected", buffer);
-    }
-  } else if (read_size == 0) {
-    channels[user_to_channel[sock]].remove_user(sock);
-    SPDLOG_INFO("{} disconnected.", usernames[sock]);
-    usernames.erase(usernames.find(sock));
-    user_to_channel.erase(user_to_channel.find(sock));
-    close(sock);
-  } else {
-    SPDLOG_ERROR("Read error on client socket {}", socket_);
-  }
-  // close(sock);
-  return mesg;
-}
-
-int tt::chat::server::Server::send_message(int sock, std::string message) {
-  return (send(sock, message.c_str(), message.size()+1, 0) > 0)? 0 : -1;
+int tt::chat::server::Server::send_message(int sock, const std::string message) {
+  return (send(sock, message.c_str(), message.size() + 1, 0) > 0) ? 0 : -1;
 }
 
 std::string tt::chat::server::Server::receive_message(int sock) {
-  char buffer[kBufferSize] = {0};
-  ssize_t read_size = read(sock, buffer, kBufferSize);
   char buffer[kBufferSize];
   ssize_t read_size = read(sock, buffer, kBufferSize - 1);
   if (read_size > 0) {
-      buffer[read_size] = '\0';  // manually null-terminate
-      return std::string(buffer);
+    buffer[read_size] = '\0';  // Ensure null termination
+    return std::string(buffer);
+  } else if (read_size == 0) {
+    // Client disconnected
+    return "";
+  } else {
+    // Read error (would block or actual error)
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      // No data available right now (normal for non-blocking)
+      return "";
+    }
+    SPDLOG_ERROR("Read error on socket {}: {}", sock, strerror(errno));
+    return "";
   }
-  return "";
 }

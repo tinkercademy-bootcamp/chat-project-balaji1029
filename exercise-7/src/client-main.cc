@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
   
   for (int i=0; i<std::stoi(channel_num_str); i++) {
     client.push_channel_name(client.receive_message());
-    std::cout << i << " received" << std::endl; 
+    std::cout << i << " received" << std::endl;
     client.send_message(client.get_channel_by_id(i));
   }
 

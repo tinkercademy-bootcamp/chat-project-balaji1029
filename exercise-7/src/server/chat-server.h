@@ -26,6 +26,12 @@ private:
 
   static constexpr int kBufferSize = 1024;
 
+  std::string handle_initial_connection(int sock);
+  void send_channel_info(int sock);
+  void handle_client_message(int sock);
+  void handle_client_disconnect(int sock);
+  void broadcast_to_channel(int channel_id, const std::string& message);
+  void broadcast_to_all_users(const std::string& message);
   std::optional<std::string> handle_accept(int sock, bool first_message = false);
   static void set_socket_options(int sock, int opt);
   int send_message(int sock, std::string message);
