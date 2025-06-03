@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <ncurses.h>
+#include <thread>
+#include <mutex>
 
 #include <spdlog/spdlog.h>
 
@@ -38,12 +40,15 @@ std::string read_args(int argc, char *argv[]) {
   return message;
 }
 
+void receive_thread(tt::chat::client::Client* client) {
+  client->receive_thread();
+}
+
 int main(int argc, char *argv[]) {
   const int kPort = 8080;
   const std::string kServerAddress = "127.0.0.1";
 
   std::string message = read_args(argc, argv);
-  std::vector<std::string> lines;
 
   tt::chat::client::Client client{kPort, kServerAddress};
   std::string response = client.send_and_receive_message(message);
@@ -66,6 +71,8 @@ int main(int argc, char *argv[]) {
   // for (int i=0; i<client.get_channel_count(); i++) {
   //   std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
   // }
+
+  std::thread receive(receive_thread, &client);
 
   initscr();
   set_escdelay(25);
@@ -119,7 +126,7 @@ int main(int argc, char *argv[]) {
     } else if (mode == CHAT) {
       if (key == 27) {
         mode = CHOICE;
-      } else if ((key == KEY_UP || key == 'k') && scroll_offset < lines.size() - 1) {
+      // } else if ((key == KEY_UP || key == 'k') && scroll_offset < lines.size() - 1) {
         scroll_offset++;
       } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
         scroll_offset--;
@@ -133,7 +140,7 @@ int main(int argc, char *argv[]) {
         input_pos--;
       } else if (key == '\n') {
         // work with it later
-        lines.push_back(std::move(input_string));
+        // lines.push_back(std::move(input_string));
         input_string = "";
         input_pos = 0;
       } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
@@ -160,7 +167,7 @@ int main(int argc, char *argv[]) {
       } else if (key == KEY_DOWN && selected_channel < client.get_channel_count() - 1) {
         selected_channel++;
       } else if (key == '\n') {
-        lines.clear();
+        client.chats.clear();
         current_channel = selected_channel;
         mode = INPUT;
       }
@@ -184,8 +191,8 @@ int main(int argc, char *argv[]) {
 		box(chat_win, 0, 0);
 		mvwprintw(chat_win, 0, 2, (std::string(" ") + client.get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
     mvwprintw(chat_win, 1, 1, "Key: %d", key);
-    for (int i=0; i<lines.size(); i++) {
-      mvwprintw(chat_win, i+2, 1, "%s", lines[i].c_str());
+    for (int i=0; i<client.chats.size(); i++) {
+      mvwprintw(chat_win, i+2, 1, "%s", (client.chats[i].user + " : " + client.chats[i].message).c_str());
     }
 
     // Draw input
@@ -203,6 +210,10 @@ int main(int argc, char *argv[]) {
 		wrefresh(input_win);
 
   } while (((key = getch()) != 'q') || (mode != CHOICE));
+
+
+
+  receive.join();
 
   delwin(channel_win);
   delwin(chat_win);

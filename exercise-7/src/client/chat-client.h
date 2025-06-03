@@ -4,13 +4,21 @@
 #include <netinet/in.h>
 #include <string>
 #include <vector>
+#include <sys/epoll.h>
 
 #define SERVER_ERROR "Server closed connection.\n"
 #define READ_ERROR "Read error.\n"
 
+struct Message {
+  std::string user;
+  std::string message;
+};
+
 namespace tt::chat::client {
 class Client {
 public:
+  bool running;
+  std::vector<Message> chats;
   Client(int port, const std::string &server_address);
   std::string send_and_receive_message(const std::string &message);
   int send_message(const std::string &message);
@@ -18,6 +26,7 @@ public:
   void push_channel_name(const std::string &channel_name);
   int get_channel_count();
   std::string get_channel_by_id(const int& id);
+  void receive_thread();
   ~Client();
 
 private:

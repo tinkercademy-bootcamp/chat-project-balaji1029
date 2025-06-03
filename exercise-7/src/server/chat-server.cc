@@ -130,7 +130,7 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
       SPDLOG_INFO("Received from {}: {}", usernames[sock], buffer);
       send(sock, buffer, read_size, 0);
       std::string message = buffer;
-      if (message[0] = 'c') {
+      if (message[0] == 'c') {
         // Message if of the form c:<channel-name>
         int channel_id = channels.size();
         channels.push_back(message.substr(2, message.size() - 2));
@@ -151,8 +151,8 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
         std::string actual_message = message_without_first_prefix.substr(index_of_second_colon + 1, message_without_first_prefix.size() - index_of_second_colon - 1);
 
         for (int user: channels[channel_id].get_users()) {
-          send_message(user, message);
-          receive_message(user); 
+          send_message(user, "m:" + std::to_string(channel_id) + ":" + std::string(usernames[sock]) + ":" + actual_message);
+          receive_message(user);
         }
       } else if (message[0] == 't') {
         int channel_id = std::stoi(message.substr(2, message.size() - 2));
@@ -192,5 +192,11 @@ int tt::chat::server::Server::send_message(int sock, std::string message) {
 std::string tt::chat::server::Server::receive_message(int sock) {
   char buffer[kBufferSize] = {0};
   ssize_t read_size = read(sock, buffer, kBufferSize);
-  return (read_size > 0)? buffer : "";
+  char buffer[kBufferSize];
+  ssize_t read_size = read(sock, buffer, kBufferSize - 1);
+  if (read_size > 0) {
+      buffer[read_size] = '\0';  // manually null-terminate
+      return std::string(buffer);
+  }
+  return "";
 }

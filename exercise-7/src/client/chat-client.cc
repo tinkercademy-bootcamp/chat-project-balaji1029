@@ -2,9 +2,11 @@
 #include "../net/chat-sockets.h"
 #include "../utils.h"
 
+#define MAX_EVENTS 32
+
 tt::chat::client::Client::Client(int port,
                                          const std::string &server_address)
-    : socket_{tt::chat::net::create_socket()} {
+    : socket_{tt::chat::net::create_socket()}, running(true) {
   sockaddr_in address = create_server_address(server_address, port);
   connect_to_server(socket_, address);
 }
@@ -48,6 +50,26 @@ std::string tt::chat::client::Client::receive_message() {
     return SERVER_ERROR;
   } else {
     return READ_ERROR;
+  }
+}
+
+void tt::chat::client::Client::receive_thread() {
+
+  while (running) {
+    // int nfds = epoll_wait(epfd, events, MAX_EVENTS, -1);
+    std::string message = receive_message();
+    send_message(message);
+
+    if (message[0] == 'c') {
+      push_channel_name(message.substr(2, message.size()-2));
+    } else if (message[0] == 'm') {
+      int first_colon = message.find_first_of(':');
+      std::string cut_message = message.substr(first_colon + 1, message.size() - first_colon - 1);
+      int second_colon = cut_message.find_first_of(':');
+      std::string user = cut_message.substr(0, second_colon);
+      std::string actual_message = cut_message.substr(second_colon + 1, cut_message.size() - second_colon - 1);
+      chats.push_back({user, message});
+    }
   }
 }
 
