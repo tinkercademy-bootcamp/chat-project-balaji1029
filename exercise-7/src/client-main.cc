@@ -88,16 +88,13 @@ int main(int argc, char *argv[]) {
   std::string input_string;
   int input_pos = 0;
   int scroll_offset = 0;
+  int current_channel = 0;
+  int selected_channel = 0;
 
   keypad(input_win, TRUE);
 
   int key = 27; // ESC
   do {
-
-    // Refresh windows
-		// wrefresh(channel_win);
-		// wrefresh(chat_win);
-		// wrefresh(input_win);
 
     getmaxyx(stdscr, height, width);
     right_width = width - LEFT_WIDTH;
@@ -158,6 +155,14 @@ int main(int argc, char *argv[]) {
     } else if (mode == CHANNELS) {
       if (key == 27) {
         mode = CHOICE;
+      } else if (key == KEY_UP && selected_channel > 0) {
+        selected_channel--;
+      } else if (key == KEY_DOWN && selected_channel < client.get_channel_count() - 1) {
+        selected_channel++;
+      } else if (key == '\n') {
+        lines.clear();
+        current_channel = selected_channel;
+        mode = INPUT;
       }
     }
 
@@ -167,13 +172,17 @@ int main(int argc, char *argv[]) {
 		mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
 
     for (int i = 0; i < client.get_channel_count(); i++) {
+      if (i == selected_channel) {
+        wattron(channel_win, A_REVERSE);
+      }
       mvwprintw(channel_win, i+1, 1, "%s", client.get_channel_by_id(i).c_str());
+      wattroff(channel_win, A_REVERSE);
     }
 
     // Draw chat box
 		werase(chat_win);
 		box(chat_win, 0, 0);
-		mvwprintw(chat_win, 0, 2, (mode == CHAT) ? " Chat [F] " : " Chat ");
+		mvwprintw(chat_win, 0, 2, (std::string(" ") + client.get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
     mvwprintw(chat_win, 1, 1, "Key: %d", key);
     for (int i=0; i<lines.size(); i++) {
       mvwprintw(chat_win, i+2, 1, "%s", lines[i].c_str());

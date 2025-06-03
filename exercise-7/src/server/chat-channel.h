@@ -14,6 +14,7 @@ class Channel {
 public:
   Channel(std::string name);
   std::string get_name();
+  std::set<int> get_users() const;
   int add_user(int fd);
   int remove_user(int fd);
 };

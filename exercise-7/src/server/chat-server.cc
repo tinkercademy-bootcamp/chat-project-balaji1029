@@ -129,7 +129,38 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
     if (!first_message) {
       SPDLOG_INFO("Received from {}: {}", usernames[sock], buffer);
       send(sock, buffer, read_size, 0);
-      SPDLOG_INFO("Echo message sent");
+      std::string message = buffer;
+      if (message[0] = 'c') {
+        // Message if of the form c:<channel-name>
+        int channel_id = channels.size();
+        channels.push_back(message.substr(2, message.size() - 2));
+        channels[channel_id].add_user(sock);
+        user_to_channel[sock] = channel_id;
+
+        for (auto [user, _]: usernames)  {
+          send_message(user, message);
+          receive_message(user);
+        }
+
+      } else if (message[0] == 'm') {
+        // Message is of the form m:<channel-id>:<message>
+        int index_of_first_colon = 1;
+        std::string message_without_first_prefix = message.substr(index_of_first_colon + 1, message.size() - index_of_first_colon - 1);
+        int index_of_second_colon = message_without_first_prefix.find_first_of(':');
+        int channel_id = std::stoi(message_without_first_prefix.substr(0, index_of_second_colon));
+        std::string actual_message = message_without_first_prefix.substr(index_of_second_colon + 1, message_without_first_prefix.size() - index_of_second_colon - 1);
+
+        for (int user: channels[channel_id].get_users()) {
+          send_message(user, message);
+          receive_message(user); 
+        }
+      } else if (message[0] == 't') {
+        int channel_id = std::stoi(message.substr(2, message.size() - 2));
+        channels[user_to_channel[sock]].remove_user(sock);
+        channels[channel_id].add_user(sock);
+        user_to_channel[sock] = channel_id;
+      }
+      // SPDLOG_INFO("Echo message sent");
     } else {
       for (auto username: usernames) {
         if (username.second == buffer) {

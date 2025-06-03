@@ -8,6 +8,8 @@ tt::chat::server::Channel::Channel(std::string name) : name(name) {}
 
 std::string tt::chat::server::Channel::get_name() {return name;}
 
+std::set<int> tt::chat::server::Channel::get_users() const {return users_fds;}
+
 int tt::chat::server::Channel::add_user(int fd) {
   auto fd_ptr = users_fds.find(fd);
   if (fd_ptr != users_fds.end()) {
