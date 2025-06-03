@@ -55,10 +55,12 @@ int main(int argc, char *argv[]) {
 
   std::string channel_num_str = client.receive_message();
   std::cout << channel_num_str << std::endl;
+  client.send_message(channel_num_str);
   
   for (int i=0; i<std::stoi(channel_num_str); i++) {
     client.push_channel_name(client.receive_message());
     std::cout << i << " received" << std::endl; 
+    client.send_message(client.get_channel_by_id(i));
   }
 
   // for (int i=0; i<client.get_channel_count(); i++) {
@@ -129,7 +131,7 @@ int main(int argc, char *argv[]) {
       if (key == 27) {
         mode = CHOICE;
         curs_set(0);
-      } else if ((key == KEY_BACKSPACE || key == 74 || key == '\b') && input_pos > 0) {
+      } else if ((key == KEY_BACKSPACE || key == '\b') && input_pos > 0) {
         input_string.erase(input_string.begin() + input_pos - 1);
         input_pos--;
       } else if (key == '\n') {
@@ -138,7 +140,11 @@ int main(int argc, char *argv[]) {
         input_string = "";
         input_pos = 0;
       } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
-        input_string.push_back(key);
+        if (input_pos == input_string.size()) {
+          input_string.push_back(key);
+        } else {
+          input_string.insert(input_string.begin()+input_pos, key);
+        }
         input_pos++;
       } else if (input_pos > 0 && key == KEY_LEFT) {
         input_pos--;
@@ -169,6 +175,9 @@ int main(int argc, char *argv[]) {
 		box(chat_win, 0, 0);
 		mvwprintw(chat_win, 0, 2, (mode == CHAT) ? " Chat [F] " : " Chat ");
     mvwprintw(chat_win, 1, 1, "Key: %d", key);
+    for (int i=0; i<lines.size(); i++) {
+      mvwprintw(chat_win, i+2, 1, "%s", lines[i].c_str());
+    }
 
     // Draw input
 		werase(input_win);
@@ -190,6 +199,8 @@ int main(int argc, char *argv[]) {
   delwin(chat_win);
   delwin(input_win);
   endwin();
+
+  // client.send_and_receive_message("u:disco")
 
   // while (true) {
   //   // std::cout << "Enter the message: ";

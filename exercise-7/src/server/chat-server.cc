@@ -86,10 +86,12 @@ void tt::chat::server::Server::handle_connections() {
         int channel_num = channels.size();
         std::string channel_num_str = std::to_string(channel_num);
         send_message(accepted_socket, channel_num_str);
+        receive_message(accepted_socket);
 
         for (Channel& channel: channels) {
           send_message(accepted_socket, channel.get_name());
           SPDLOG_INFO("Channel {} sent", channel.get_name());
+          receive_message(accepted_socket);
         }
 
         struct epoll_event ev;
@@ -154,4 +156,10 @@ std::optional<std::string> tt::chat::server::Server::handle_accept(int sock, boo
 
 int tt::chat::server::Server::send_message(int sock, std::string message) {
   return (send(sock, message.c_str(), message.size()+1, 0) > 0)? 0 : -1;
+}
+
+std::string tt::chat::server::Server::receive_message(int sock) {
+  char buffer[kBufferSize] = {0};
+  ssize_t read_size = read(sock, buffer, kBufferSize);
+  return (read_size > 0)? buffer : "";
 }

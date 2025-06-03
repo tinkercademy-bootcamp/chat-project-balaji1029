@@ -29,6 +29,7 @@ private:
   std::optional<std::string> handle_accept(int sock, bool first_message = false);
   static void set_socket_options(int sock, int opt);
   int send_message(int sock, std::string message);
+  std::string receive_message(int sock);
 };
 } // namespace tt::chat::server
 
