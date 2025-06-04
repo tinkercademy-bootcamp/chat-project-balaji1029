@@ -100,6 +100,9 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
       }
     }
 
+    if (client.mode == INPUT) curs_set(1);
+    else curs_set(0);
+
     werase(channel_win);
     box(channel_win, 0, 0);
     mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
@@ -126,7 +129,7 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
     mvwprintw(chat_win, 0, 2, (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
     // mvwprintw(chat_win, 1, 1, "Key: %d", key);
     for (int i=0; i<chats.size(); i++) {
-      mvwprintw(chat_win, i+1, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+      mvwprintw(chat_win, i+2, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
     }
 
     // Draw input

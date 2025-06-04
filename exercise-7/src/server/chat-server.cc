@@ -156,6 +156,7 @@ void tt::chat::server::Server::handle_client_message(int sock) {
   if (message[0] == 'c') {
     // Create new channel: c:<channel-name>
     std::string channel_name = message.substr(2);
+    if (channel_name == "" || channel_name.find_first_of(';') != std::string::npos) return;
     int channel_id = channels.size();
     channels.push_back(Channel(channel_name));
     channels[channel_id].add_user(sock);
@@ -197,7 +198,8 @@ void tt::chat::server::Server::handle_client_message(int sock) {
       SPDLOG_INFO("{} switched to channel {}", usernames[sock], new_channel_id);
     }
   } else if (message[0] == 'k') {
-    send_message(sock, "k");
+    // send_message(sock, "k");
+    handle_client_disconnect(sock);
   }
 }
 

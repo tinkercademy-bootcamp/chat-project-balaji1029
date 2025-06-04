@@ -93,6 +93,9 @@ int main(int argc, char *argv[]) {
   int key = 27; // ESC
   do {
 
+    if (client.mode == INPUT) curs_set(1);
+    else curs_set(0);
+
     getmaxyx(stdscr, height, width);
     right_width = width - LEFT_WIDTH;
     right_height = height - INPUT_HEIGHT;
@@ -110,10 +113,6 @@ int main(int argc, char *argv[]) {
       } else if (key == 'i') {
         client.mode = INPUT;
         curs_set(1);
-      } else if (key == 'q') {
-        client.running.store(false);
-        client.send_message("k");
-        break;
       }
     } else if (client.mode == CHAT) {
       if (key == 27) {
@@ -134,8 +133,10 @@ int main(int argc, char *argv[]) {
         std::string message;
         if (client.current_channel >= 0)
           message = "m:" + std::to_string(client.current_channel) + ":" + client.input_string;
-        else 
+        else {
           message = "c:" + client.input_string;
+          client.mode = CHANNELS;
+        }
         client.send_message(message);
         client.input_string = "";
         client.input_pos = 0;
@@ -193,9 +194,9 @@ int main(int argc, char *argv[]) {
 		werase(chat_win);
 		box(chat_win, 0, 0);
 		mvwprintw(chat_win, 0, 2, (std::string(" ") + client.get_channel_by_id(client.current_channel) + " " + ((client.mode == CHAT) ? "[F] " : "")).c_str());
-    // mvwprintw(chat_win, 1, 1, "Key: %d", key);
+    mvwprintw(chat_win, 1, 1, "Key: %d", key);
     for (int i=0; i<client.chats.size(); i++) {
-      mvwprintw(chat_win, i+1, 1, "%s", (client.chats[i].user + "\t:  " + client.chats[i].message).c_str());
+      mvwprintw(chat_win, i+2, 1, "%s", (client.chats[i].user + "\t:  " + client.chats[i].message).c_str());
     }
 
     // Draw input
@@ -214,7 +215,8 @@ int main(int argc, char *argv[]) {
 
   } while (((key = getch()) != 'q') || (client.mode != CHOICE));
 
-
+  client.running.store(false);
+  client.send_message("k");
 
   receive.join();
 
