@@ -42,10 +42,10 @@ public:
     std::string get_channel_by_id(const int &id);
     
     std::vector<Message> chats;
-    int selected_channel;
-    int current_channel;
-    Mode mode;
-    int input_pos;
+    std::atomic<size_t> selected_channel;
+    std::atomic<size_t> current_channel;
+    std::atomic<Mode> mode;
+    std::atomic<size_t> input_pos;
     std::string input_string;
     std::atomic<bool> running;      
 

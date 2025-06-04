@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
           client.selected_channel++;
         } else if (key == '\n') {
           client.chats.clear();
-          client.current_channel = client.selected_channel;
+          client.current_channel.store(client.selected_channel);
           client.mode = INPUT;
           std::string message = "t:" + std::to_string(client.current_channel);
           client.send_message(message);

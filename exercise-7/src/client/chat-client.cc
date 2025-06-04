@@ -100,12 +100,12 @@ void tt::chat::client::Client::receive_thread(tt::chat::client::Window &input_wi
       }
     }
 
-    if (mode == INPUT) curs_set(1);
+    if (mode.load() == INPUT) curs_set(1);
     else curs_set(0);
 
     channel_win.erase();
     channel_win.boxit(0, 0);
-    channel_win.print(0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
+    channel_win.print(0, 2, (mode.load() == CHANNELS) ? " Channels [F] " : " Channels ");
 
     if (selected_channel == -1) {
       channel_win.wattr(true);
@@ -128,7 +128,7 @@ void tt::chat::client::Client::receive_thread(tt::chat::client::Window &input_wi
 		// box(chat_win, 0, 0);
     chat_win.boxit(0, 0);
 		// mvwprintw(chat_win, 0, 2, (std::string(" ") + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
-    chat_win.print(0, 2, " " + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : ""));
+    chat_win.print(0, 2, " " + get_channel_by_id(current_channel) + " " + ((mode.load() == CHAT) ? "[F] " : ""));
     // mvwprintw(chat_win, 1, 1, "Key: %d", key);
     for (int i=0; i<chats.size(); i++) {
       // mvwprintw(chat_win, i+1, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
@@ -143,9 +143,9 @@ void tt::chat::client::Client::receive_thread(tt::chat::client::Window &input_wi
 
     input_win.erase();
     input_win.boxit(0, 0);
-    input_win.print(0, 2, " Input (" + std::string((mode == INPUT) ? "Insert" : "Nav") + " mode) ");
+    input_win.print(0, 2, " Input (" + std::string((mode.load() == INPUT) ? "Insert" : "Nav") + " mode) ");
 
-    if (mode == INPUT) {
+    if (mode.load() == INPUT) {
 			// wmove(input_win, 1, 1 + input_pos);
       input_win.move_cursor(1, 1+input_pos);
 		}
