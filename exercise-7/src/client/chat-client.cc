@@ -3,6 +3,7 @@
 #include "../utils.h"
 #include <atomic>
 #include <mutex>
+#include <ncurses.h>
 
 #define MAX_EVENTS 32
 
@@ -12,6 +13,9 @@ tt::chat::client::Client::Client(int port,
   running.store(true);
   sockaddr_in address = create_server_address(server_address, port);
   connect_to_server(socket_, address);
+  selected_channel = 0;
+  mode = CHOICE;
+  input_pos = 0;
 }
 
 std::string tt::chat::client::Client::send_and_receive_message(
@@ -63,7 +67,7 @@ std::string tt::chat::client::Client::receive_message() {
   }
 }
 
-void tt::chat::client::Client::receive_thread() {
+void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_win, WINDOW* channel_win) {
   while (running.load()) {
     std::string message = receive_message();
     
@@ -79,19 +83,59 @@ void tt::chat::client::Client::receive_thread() {
       push_channel_name(message.substr(2, message.size()-2));
     } else if (message[0] == 'm') {
       // Incoming chat message - parse and display
+      message = message.substr(2, message.size()-2);
       size_t first_colon = message.find_first_of(':');
       if (first_colon != std::string::npos) {
-        std::string cut_message = message.substr(first_colon + 1, message.size() - first_colon - 1);
-        size_t second_colon = cut_message.find_first_of(':');
+        std::string channel_num = message.substr(0, first_colon);
+        message = message.substr(first_colon+1, message.size()-first_colon-1);
+        if (std::stoi(channel_num) != current_channel) continue;
+        size_t second_colon = message.find_first_of(':');
         if (second_colon != std::string::npos) {
-          std::string user = cut_message.substr(0, second_colon);
-          std::string actual_message = cut_message.substr(second_colon + 1, cut_message.size() - second_colon - 1);
-          
-          // Thread-safe addition to chats
-          std::lock_guard<std::mutex> lock(chat_mutex);
-          chats.push_back({user, actual_message});
+          std::string user = message.substr(0, second_colon);
+          message = message.substr(second_colon+1, message.size()-second_colon-1);
+          chats.push_back({user, message});
         }
       }
+
+      werase(channel_win);
+      box(channel_win, 0, 0);
+      mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
+
+      if (selected_channel == -1) {
+        wattron(channel_win, A_REVERSE);
+      }
+      mvwprintw(channel_win, 1, 1, "New Channel");
+      wattroff(channel_win, A_REVERSE);
+      for (int i = 0; i < get_channel_count(); i++) {
+        if (i == selected_channel) {
+          wattron(channel_win, A_REVERSE);
+        }
+        mvwprintw(channel_win, i+2, 1, "%s", get_channel_by_id(i).c_str());
+        wattroff(channel_win, A_REVERSE);
+      }
+
+      // Draw chat box
+      werase(chat_win);
+      box(chat_win, 0, 0);
+      mvwprintw(chat_win, 0, 2, (std::string(" ") + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
+      // mvwprintw(chat_win, 1, 1, "Key: %d", key);
+      for (int i=0; i<chats.size(); i++) {
+        mvwprintw(chat_win, i+1, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+      }
+
+      // Draw input
+      werase(input_win);
+      box(input_win, 0, 0);
+      mvwprintw(input_win, 0, 2, " Input (%s mode) ", mode == INPUT ? "Insert" : "Nav");
+      mvwprintw(input_win, 1, 1, "%s", input_string.c_str());
+      if (mode == INPUT) {
+        wmove(input_win, 1, 1 + input_pos);
+      }
+
+      // Refresh windows
+      wrefresh(channel_win);
+      wrefresh(chat_win);
+      wrefresh(input_win);
     }
     // Note: Removed the automatic send_message(message) that was causing echo
   }
