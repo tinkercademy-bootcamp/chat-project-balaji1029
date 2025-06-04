@@ -8,6 +8,8 @@
 #include <ncurses.h>
 #include <string>
 
+#include "window.h"
+
 #define SERVER_ERROR "Server closed connection.\n"
 #define READ_ERROR "Read error.\n"
 
@@ -33,7 +35,7 @@ public:
     std::string send_and_receive_message(const std::string &message);
     int send_message(const std::string& message);
     std::string receive_message();
-    void receive_thread(WINDOW* input_win, WINDOW* chat_win, WINDOW* channel_win);
+    void receive_thread(tt::chat::client::Window &input_win, tt::chat::client::Window &chat_win, tt::chat::client::Window &channel_win);
     
     void push_channel_name(const std::string &channel_name);
     int get_channel_count();
