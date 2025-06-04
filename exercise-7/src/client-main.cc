@@ -10,6 +10,7 @@
 #include <ncurses.h>
 #include <thread>
 #include <mutex>
+#include <csignal>
 
 #include <spdlog/spdlog.h>
 
@@ -36,6 +37,23 @@ std::string read_args(int argc, char *argv[]) {
 void receive_thread(tt::chat::client::Client* client, WINDOW* input_win, WINDOW* chat_win, WINDOW* channel_win) {
   client->receive_thread(input_win, chat_win, channel_win);
 }
+
+void handle_signal(int signum) {
+    std::cout << "\n[!] Caught signal " << signum << " - terminating...\n";
+    // Perform cleanup here if needed
+    std::exit(EXIT_SUCCESS);
+}
+
+const int termination_signals[] = {
+    SIGINT,     // Ctrl+C
+    SIGTERM,    // Termination request
+    SIGQUIT,    // Quit from keyboard
+    SIGHUP,     // Terminal hangup
+    SIGABRT,    // Abort
+    SIGTSTP,    // Terminal stop signal (Ctrl+Z)
+    SIGSTOP,    // Stop process (cannot be caught or ignored)
+    SIGKILL     // Kill (cannot be caught or ignored)
+};
 
 int main(int argc, char *argv[]) {
   const int kPort = 8080;

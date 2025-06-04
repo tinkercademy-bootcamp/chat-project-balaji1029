@@ -100,7 +100,7 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
       }
     }
 
-    if (client.mode == INPUT) curs_set(1);
+    if (mode == INPUT) curs_set(1);
     else curs_set(0);
 
     werase(channel_win);
