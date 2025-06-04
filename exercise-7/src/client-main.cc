@@ -58,14 +58,14 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  std::string channel_num_str = client.receive_message();
-  std::cout << channel_num_str << std::endl;
-  client.send_message(channel_num_str);
+  std::string channels_str = client.receive_message();
+  // std::cout << channel_num_str << std::endl;
+  // client.send_message(channel_num_str);
   
-  for (int i=0; i<std::stoi(channel_num_str); i++) {
-    client.push_channel_name(client.receive_message());
-    std::cout << i << " received" << std::endl;
-    client.send_message(client.get_channel_by_id(i));
+  while (channels_str.find_first_of(';') != std::string::npos) {
+    int semi_colon_index = channels_str.find_first_of(';');
+    client.push_channel_name(channels_str.substr(0, semi_colon_index));
+    channels_str = channels_str.substr(semi_colon_index + 1, channels_str.size()-semi_colon_index-1);
   }
 
   // for (int i=0; i<client.get_channel_count(); i++) {
@@ -141,6 +141,8 @@ int main(int argc, char *argv[]) {
       } else if (key == '\n') {
         // work with it later
         // lines.push_back(std::move(input_string));
+        std::string message = "m:" + std::to_string(current_channel) + ":" + input_string;
+        client.send_message(message);
         input_string = "";
         input_pos = 0;
       } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {

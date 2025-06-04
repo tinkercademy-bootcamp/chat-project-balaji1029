@@ -125,16 +125,19 @@ std::string tt::chat::server::Server::handle_initial_connection(int sock) {
 void tt::chat::server::Server::send_channel_info(int sock) {
   // Send number of channels
   int channel_num = channels.size();
-  std::string channel_num_str = std::to_string(channel_num);
-  send_message(sock, channel_num_str);
-  receive_message(sock); // Wait for acknowledgment
+  std::string channels_str;
+  for (int i=0; i<channel_num; i++) {
+    channels_str += channels[i].get_name() + ";";
+  }
+  send_message(sock, channels_str);
+  // receive_message(sock); // Wait for acknowledgment
 
   // Send each channel name
-  for (Channel& channel : channels) {
-    send_message(sock, channel.get_name());
-    SPDLOG_INFO("Channel {} sent to user {}", channel.get_name(), usernames[sock]);
-    receive_message(sock); // Wait for acknowledgment
-  }
+  // for (Channel& channel : channels) {
+  //   send_message(sock, channel.get_name());
+  //   SPDLOG_INFO("Channel {} sent to user {}", channel.get_name(), usernames[sock]);
+  //   // receive_message(sock); // Wait for acknowledgment
+  // }
 }
 
 void tt::chat::server::Server::handle_client_message(int sock) {
