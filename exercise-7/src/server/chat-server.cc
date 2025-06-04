@@ -196,6 +196,8 @@ void tt::chat::server::Server::handle_client_message(int sock) {
       
       SPDLOG_INFO("{} switched to channel {}", usernames[sock], new_channel_id);
     }
+  } else if (message[0] == 'k') {
+    send_message(sock, "k");
   }
 }
 

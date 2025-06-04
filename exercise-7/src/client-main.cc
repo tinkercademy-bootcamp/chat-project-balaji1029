@@ -112,6 +112,7 @@ int main(int argc, char *argv[]) {
         curs_set(1);
       } else if (key == 'q') {
         client.running.store(false);
+        client.send_message("k");
         break;
       }
     } else if (client.mode == CHAT) {
@@ -130,8 +131,6 @@ int main(int argc, char *argv[]) {
         client.input_string.erase(client.input_string.begin() + client.input_pos - 1);
         client.input_pos--;
       } else if (key == '\n') {
-        // work with it later
-        // lines.push_back(std::move(client.input_string));
         std::string message;
         if (client.current_channel >= 0)
           message = "m:" + std::to_string(client.current_channel) + ":" + client.input_string;

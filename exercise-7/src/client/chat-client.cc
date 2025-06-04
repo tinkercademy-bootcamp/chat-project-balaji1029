@@ -76,6 +76,8 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
       running.store(false);
       break;
     }
+
+    if (message[0] == 'k') break;
     
     // Only process incoming messages, don't echo them back
     if (message[0] == 'c') {
@@ -96,47 +98,50 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
           chats.push_back({user, message});
         }
       }
+    }
 
-      werase(channel_win);
-      box(channel_win, 0, 0);
-      mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
+    werase(channel_win);
+    box(channel_win, 0, 0);
+    mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
 
-      if (selected_channel == -1) {
+    if (selected_channel == -1) {
+      wattron(channel_win, A_REVERSE);
+    }
+    mvwprintw(channel_win, 1, 1, "New Channel");
+    wattroff(channel_win, A_REVERSE);
+    for (int i = 0; i < get_channel_count(); i++) {
+      if (i == selected_channel) {
         wattron(channel_win, A_REVERSE);
       }
-      mvwprintw(channel_win, 1, 1, "New Channel");
+      mvwprintw(channel_win, i+2, 1, "%s", get_channel_by_id(i).c_str());
       wattroff(channel_win, A_REVERSE);
-      for (int i = 0; i < get_channel_count(); i++) {
-        if (i == selected_channel) {
-          wattron(channel_win, A_REVERSE);
-        }
-        mvwprintw(channel_win, i+2, 1, "%s", get_channel_by_id(i).c_str());
-        wattroff(channel_win, A_REVERSE);
-      }
-
-      // Draw chat box
-      werase(chat_win);
-      box(chat_win, 0, 0);
-      mvwprintw(chat_win, 0, 2, (std::string(" ") + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
-      // mvwprintw(chat_win, 1, 1, "Key: %d", key);
-      for (int i=0; i<chats.size(); i++) {
-        mvwprintw(chat_win, i+1, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
-      }
-
-      // Draw input
-      werase(input_win);
-      box(input_win, 0, 0);
-      mvwprintw(input_win, 0, 2, " Input (%s mode) ", mode == INPUT ? "Insert" : "Nav");
-      mvwprintw(input_win, 1, 1, "%s", input_string.c_str());
-      if (mode == INPUT) {
-        wmove(input_win, 1, 1 + input_pos);
-      }
-
-      // Refresh windows
-      wrefresh(channel_win);
-      wrefresh(chat_win);
-      wrefresh(input_win);
     }
+
+    // Draw chat box
+    werase(chat_win);
+    box(chat_win, 0, 0);
+    if (current_channel > 0)
+    mvwprintw(chat_win, 0, 2, (std::string(" ") + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
+    else
+    mvwprintw(chat_win, 0, 2, (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
+    // mvwprintw(chat_win, 1, 1, "Key: %d", key);
+    for (int i=0; i<chats.size(); i++) {
+      mvwprintw(chat_win, i+1, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+    }
+
+    // Draw input
+    werase(input_win);
+    box(input_win, 0, 0);
+    mvwprintw(input_win, 0, 2, " Input (%s mode) ", mode == INPUT ? "Insert" : "Nav");
+    mvwprintw(input_win, 1, 1, "%s", input_string.c_str());
+    if (mode == INPUT) {
+      wmove(input_win, 1, 1 + input_pos);
+    }
+
+    // Refresh windows
+    wrefresh(channel_win);
+    wrefresh(chat_win);
+    wrefresh(input_win);
     // Note: Removed the automatic send_message(message) that was causing echo
   }
 }
