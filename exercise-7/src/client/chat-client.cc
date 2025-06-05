@@ -51,17 +51,17 @@ int tt::chat::client::Client::send_message(const std::string& message) {
 }
 
 void tt::chat::client::Client::push_channel_name(const std::string &channel_name) {
-  std::lock_guard<std::mutex> lock(channel_mutex);
+  // std::lock_guard<std::mutex> lock(channel_mutex);
   channel_names.push_back(channel_name);
 }
 
 int tt::chat::client::Client::get_channel_count() {
-  std::lock_guard<std::mutex> lock(channel_mutex);
+  // std::lock_guard<std::mutex> lock(channel_mutex);
   return channel_names.size();
 }
 
 std::string tt::chat::client::Client::get_channel_by_id(const int &id) {
-  std::lock_guard<std::mutex> lock(channel_mutex);
+  // std::lock_guard<std::mutex> lock(channel_mutex);
   if (id >= 0 && id < static_cast<int>(channel_names.size())) {
     return channel_names.at(id);
   }
@@ -100,13 +100,13 @@ void tt::chat::client::Client::receive_thread() {
     if (message[0] == 'c') {
       // New channel created - add it to our list
       {
-        std::lock_guard lock{channel_mutex};
+        // std::lock_guard lock{channel_mutex};
         push_channel_name(message.substr(2, message.size()-2));
       }
     } else if (message[0] == 'm') {
       // Incoming chat message - parse and display
       {
-        std::lock_guard lock{chat_mutex};
+        // std::lock_guard lock{chat_mutex};
         message = message.substr(2, message.size()-2);
         size_t first_colon = message.find_first_of(':');
         if (first_colon != std::string::npos) {
@@ -124,7 +124,7 @@ void tt::chat::client::Client::receive_thread() {
       }
     }
     {
-      std::lock_guard lock{refresh_mutex};
+      // std::lock_guard lock{refresh_mutex};
       refresh_windows();
     }
     // Note: Removed the automatic send_message(message) that was causing echo
@@ -248,7 +248,7 @@ void tt::chat::client::Client::refresh_windows() {
   mvwprintw(channel_win, 1, 1, "New Channel");
   wattroff(channel_win, A_REVERSE);
   {
-    std::lock_guard lock{channel_mutex};
+    // std::lock_guard lock{channel_mutex};
     for (int i = 0; i < get_channel_count(); i++) {
       if (i == selected_channel) {
         wattron(channel_win, A_REVERSE);
@@ -267,7 +267,7 @@ void tt::chat::client::Client::refresh_windows() {
     mvwprintw(chat_win, 0, 2, "%s", (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
   
   {
-    std::lock_guard lock{chat_mutex};
+    // std::lock_guard lock{chat_mutex};
     int ind = right_height-2;
     for (int i = chats.size()-scroll_offset-1; i>=0 && ind >= 1; i--) {
       mvwprintw(chat_win, ind, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
@@ -366,7 +366,7 @@ void tt::chat::client::Client::ui_thread() {
     }
 
     {
-      std::lock_guard lock{refresh_mutex};
+      // std::lock_guard lock{refresh_mutex};
       refresh_windows();
     }
 
