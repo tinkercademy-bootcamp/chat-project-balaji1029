@@ -32,7 +32,7 @@ std::string read_args(int argc, char *argv[]) {
 }
 
 int main(int argc, char *argv[]) {
-  const int kPort = 8080;
+  const int kPort = 35000;
   const std::string kServerAddress = "127.0.0.1";
 
   std::string username = read_args(argc, argv);

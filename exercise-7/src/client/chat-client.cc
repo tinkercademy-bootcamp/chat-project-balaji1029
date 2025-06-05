@@ -4,6 +4,7 @@
 #include <atomic>
 #include <mutex>
 #include <ncurses.h>
+#include <locale.h>
 
 #define LEFT_WIDTH 35
 #define INPUT_HEIGHT 3
@@ -192,6 +193,34 @@ void tt::chat::client::Client::take_message_input(const int& key) {
   }
 }
 
+void tt::chat::client::Client::take_chat_input(const int& key) {
+  if (key == 27) {
+    mode = CHOICE;
+  } else if ((key == KEY_UP || key == 'k') && scroll_offset < chats.size()-1) {
+    scroll_offset++;
+  } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
+    scroll_offset--;
+  }
+}
+
+void tt::chat::client::Client::take_channel_input(const int& key) {
+  if (key == 27) {
+    mode = CHOICE;
+  } else if (key == KEY_UP && selected_channel > -1) {
+    selected_channel--;
+  } else if (key == KEY_DOWN && selected_channel < get_channel_count() - 1) {
+    selected_channel++;
+  } else if (key == '\n') {
+    chats.clear();
+    current_channel = selected_channel;
+    mode = INPUT;
+    if (current_channel > -1) {
+      std::string message = "t:" + std::to_string(current_channel);
+      send_message(message);
+    }
+  }
+}
+
 void receiver(tt::chat::client::Client* client) {
   client->receive_thread();
 }
@@ -224,15 +253,25 @@ void tt::chat::client::Client::refresh_windows() {
     mvwprintw(chat_win, 0, 2, "%s", (std::string(" ") + get_channel_by_id(current_channel) + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
   else
     mvwprintw(chat_win, 0, 2, "%s", (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
-  // mvwprintw(chat_win, 1, 1, "Key: %d", key);
-  // for (int i=0; i<chats.size(); i++) {
-  //   mvwprintw(chat_win, i+2, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
-  // }
+  
   int ind = right_height-2;
   for (int i = chats.size()-scroll_offset-1; i>=0 && ind >= 1; i--) {
     mvwprintw(chat_win, ind, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
     ind--;
   }
+  
+  werase(help_win);
+  std::string help;
+  if (mode == CHOICE)
+    help = CHOICE_HELP;
+  else if (mode == CHANNELS)
+    help = CHANNEL_HELP;
+  else if (mode == CHAT)
+    help = CHAT_HELP;
+  else if (mode == INPUT)
+    help = INPUT_HELP;
+  mvwprintw(help_win, 0, 1, help.c_str());
+  // clrtoeol();
 
   // Draw input
   werase(input_win);
@@ -243,13 +282,18 @@ void tt::chat::client::Client::refresh_windows() {
     wmove(input_win, 1, 1 + input_pos);
   }
 
+  
+  refresh();
+  
   // Refresh windows
+  wrefresh(help_win);
   wrefresh(channel_win);
   wrefresh(chat_win);
   wrefresh(input_win);
 }
 
 void tt::chat::client::Client::ui_thread() {
+  setlocale(LC_ALL, "");
   initscr();
   set_escdelay(25);
   noecho();
@@ -267,6 +311,7 @@ void tt::chat::client::Client::ui_thread() {
   channel_win = newwin(height, LEFT_WIDTH, 0, 0);
   chat_win = newwin(right_height, right_width, 0, LEFT_WIDTH);
   input_win = newwin(INPUT_HEIGHT, right_width, right_height, LEFT_WIDTH);
+  help_win = newwin(1, width, height, 0);
 
   std::thread receive(receiver, this);
 
@@ -284,6 +329,9 @@ void tt::chat::client::Client::ui_thread() {
     else curs_set(0);
 
     getmaxyx(stdscr, height, width);
+
+    height--;
+
     right_width = width - LEFT_WIDTH;
     right_height = height - INPUT_HEIGHT;
 
@@ -295,31 +343,11 @@ void tt::chat::client::Client::ui_thread() {
     if (mode == CHOICE) {
       take_choice_input(key);
     } else if (mode == CHAT) {
-      if (key == 27) {
-        mode = CHOICE;
-      } else if ((key == KEY_UP || key == 'k') && scroll_offset < chats.size()-1) {
-        scroll_offset++;
-      } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
-        scroll_offset--;
-      }
+      take_chat_input(key);
     } else if (mode == INPUT) {
       take_message_input(key);
     } else if (mode == CHANNELS) {
-      if (key == 27) {
-        mode = CHOICE;
-      } else if (key == KEY_UP && selected_channel > -1) {
-        selected_channel--;
-      } else if (key == KEY_DOWN && selected_channel < get_channel_count() - 1) {
-        selected_channel++;
-      } else if (key == '\n') {
-        chats.clear();
-        current_channel = selected_channel;
-        mode = INPUT;
-        if (current_channel > -1) {
-          std::string message = "t:" + std::to_string(current_channel);
-          send_message(message);
-        }
-      }
+      take_channel_input(key);
     }
 
     refresh_windows();
@@ -334,5 +362,6 @@ void tt::chat::client::Client::ui_thread() {
   delwin(channel_win);
   delwin(chat_win);
   delwin(input_win);
+  delwin(help_win);
   endwin();
 }
