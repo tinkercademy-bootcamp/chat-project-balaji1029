@@ -112,6 +112,7 @@ void tt::chat::client::Client::receive_thread() {
           std::string user = message.substr(0, second_colon);
           message = message.substr(second_colon+1, message.size()-second_colon-1);
           chats.push_back({user, message});
+          scroll_offset = 0;
         }
       }
     }
@@ -163,6 +164,7 @@ void tt::chat::client::Client::take_message_input(const int& key) {
     input_pos--;
   } else if (key == '\n') {
     std::string message;
+    if (input_string == "") return;
     if (current_channel >= 0)
       message = "m:" + std::to_string(current_channel) + ":" + input_string;
     else {
@@ -223,8 +225,13 @@ void tt::chat::client::Client::refresh_windows() {
   else
     mvwprintw(chat_win, 0, 2, "%s", (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
   // mvwprintw(chat_win, 1, 1, "Key: %d", key);
-  for (int i=0; i<chats.size(); i++) {
-    mvwprintw(chat_win, i+2, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+  // for (int i=0; i<chats.size(); i++) {
+  //   mvwprintw(chat_win, i+2, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+  // }
+  int ind = right_height-2;
+  for (int i = chats.size()-scroll_offset-1; i>=0 && ind >= 1; i--) {
+    mvwprintw(chat_win, ind, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+    ind--;
   }
 
   // Draw input
@@ -251,9 +258,11 @@ void tt::chat::client::Client::ui_thread() {
   curs_set(0);
 
   getmaxyx(stdscr, height, width);
+
+  height--;
   
   right_width = width - LEFT_WIDTH;
-  right_height = width - INPUT_HEIGHT;
+  right_height = height - INPUT_HEIGHT - 1;
 
   channel_win = newwin(height, LEFT_WIDTH, 0, 0);
   chat_win = newwin(right_height, right_width, 0, LEFT_WIDTH);
@@ -288,7 +297,7 @@ void tt::chat::client::Client::ui_thread() {
     } else if (mode == CHAT) {
       if (key == 27) {
         mode = CHOICE;
-      } else if ((key == KEY_UP || key == 'k') && scroll_offset < 100) {
+      } else if ((key == KEY_UP || key == 'k') && scroll_offset < chats.size()-1) {
         scroll_offset++;
       } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
         scroll_offset--;
@@ -306,8 +315,10 @@ void tt::chat::client::Client::ui_thread() {
         chats.clear();
         current_channel = selected_channel;
         mode = INPUT;
-        std::string message = "t:" + std::to_string(current_channel);
-        send_message(message);
+        if (current_channel > -1) {
+          std::string message = "t:" + std::to_string(current_channel);
+          send_message(message);
+        }
       }
     }
 
