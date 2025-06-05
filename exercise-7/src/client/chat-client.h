@@ -8,8 +8,6 @@
 #include <ncurses.h>
 #include <string>
 
-#include "window.h"
-
 #define SERVER_ERROR "Server closed connection.\n"
 #define READ_ERROR "Read error.\n"
 
@@ -51,6 +49,7 @@ public:
     
     std::mutex chat_mutex;          
     std::mutex channel_mutex;
+    std::mutex refresh_mutex;
     
     WINDOW* channel_win;
     WINDOW* chat_win;

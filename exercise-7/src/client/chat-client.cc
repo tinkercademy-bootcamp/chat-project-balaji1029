@@ -99,25 +99,34 @@ void tt::chat::client::Client::receive_thread() {
     // Only process incoming messages, don't echo them back
     if (message[0] == 'c') {
       // New channel created - add it to our list
-      push_channel_name(message.substr(2, message.size()-2));
+      {
+        std::lock_guard lock{channel_mutex};
+        push_channel_name(message.substr(2, message.size()-2));
+      }
     } else if (message[0] == 'm') {
       // Incoming chat message - parse and display
-      message = message.substr(2, message.size()-2);
-      size_t first_colon = message.find_first_of(':');
-      if (first_colon != std::string::npos) {
-        std::string channel_num = message.substr(0, first_colon);
-        message = message.substr(first_colon+1, message.size()-first_colon-1);
-        if (std::stoi(channel_num) != current_channel) continue;
-        size_t second_colon = message.find_first_of(':');
-        if (second_colon != std::string::npos) {
-          std::string user = message.substr(0, second_colon);
-          message = message.substr(second_colon+1, message.size()-second_colon-1);
-          chats.push_back({user, message});
-          scroll_offset = 0;
+      {
+        std::lock_guard lock{chat_mutex};
+        message = message.substr(2, message.size()-2);
+        size_t first_colon = message.find_first_of(':');
+        if (first_colon != std::string::npos) {
+          std::string channel_num = message.substr(0, first_colon);
+          message = message.substr(first_colon+1, message.size()-first_colon-1);
+          if (std::stoi(channel_num) != current_channel) continue;
+          size_t second_colon = message.find_first_of(':');
+          if (second_colon != std::string::npos) {
+            std::string user = message.substr(0, second_colon);
+            message = message.substr(second_colon+1, message.size()-second_colon-1);
+            chats.push_back({user, message});
+            scroll_offset = 0;
+          }
         }
       }
     }
-    refresh_windows();
+    {
+      std::lock_guard lock{refresh_mutex};
+      refresh_windows();
+    }
     // Note: Removed the automatic send_message(message) that was causing echo
   }
 }
@@ -176,7 +185,7 @@ void tt::chat::client::Client::take_message_input(const int& key) {
     input_string = "";
     input_pos = 0;
   } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
-    if (input_pos == input_string.size()) {
+    if ((size_t) input_pos == input_string.size()) {
       input_string.push_back(key);
     } else {
       input_string.insert(input_string.begin()+input_pos, key);
@@ -184,7 +193,7 @@ void tt::chat::client::Client::take_message_input(const int& key) {
     input_pos++;
   } else if (input_pos > 0 && key == KEY_LEFT) {
     input_pos--;
-  } else if (input_pos < input_string.size() && key == KEY_RIGHT) {
+  } else if ((size_t) input_pos < input_string.size() && key == KEY_RIGHT) {
     input_pos++;
   } else if (key == KEY_HOME) {
     input_pos = 0;
@@ -196,7 +205,7 @@ void tt::chat::client::Client::take_message_input(const int& key) {
 void tt::chat::client::Client::take_chat_input(const int& key) {
   if (key == 27) {
     mode = CHOICE;
-  } else if ((key == KEY_UP || key == 'k') && scroll_offset < chats.size()-1) {
+  } else if ((key == KEY_UP || key == 'k') && (size_t) scroll_offset < chats.size()-1) {
     scroll_offset++;
   } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
     scroll_offset--;
@@ -231,19 +240,22 @@ void tt::chat::client::Client::refresh_windows() {
 
   werase(channel_win);
   box(channel_win, 0, 0);
-  mvwprintw(channel_win, 0, 2, (mode == CHANNELS) ? " Channels [F] " : " Channels ");
+  mvwprintw(channel_win, 0, 2, "%s", (mode == CHANNELS) ? " Channels [F] " : " Channels ");
 
   if (selected_channel == -1) {
     wattron(channel_win, A_REVERSE);
   }
   mvwprintw(channel_win, 1, 1, "New Channel");
   wattroff(channel_win, A_REVERSE);
-  for (int i = 0; i < get_channel_count(); i++) {
-    if (i == selected_channel) {
-      wattron(channel_win, A_REVERSE);
+  {
+    std::lock_guard lock{channel_mutex};
+    for (int i = 0; i < get_channel_count(); i++) {
+      if (i == selected_channel) {
+        wattron(channel_win, A_REVERSE);
+      }
+      mvwprintw(channel_win, i+2, 1, "%s", get_channel_by_id(i).c_str());
+      wattroff(channel_win, A_REVERSE);
     }
-    mvwprintw(channel_win, i+2, 1, "%s", get_channel_by_id(i).c_str());
-    wattroff(channel_win, A_REVERSE);
   }
 
   // Draw chat box
@@ -254,10 +266,13 @@ void tt::chat::client::Client::refresh_windows() {
   else
     mvwprintw(chat_win, 0, 2, "%s", (std::string(" ") + "New Channel" + " " + ((mode == CHAT) ? "[F] " : "")).c_str());
   
-  int ind = right_height-2;
-  for (int i = chats.size()-scroll_offset-1; i>=0 && ind >= 1; i--) {
-    mvwprintw(chat_win, ind, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
-    ind--;
+  {
+    std::lock_guard lock{chat_mutex};
+    int ind = right_height-2;
+    for (int i = chats.size()-scroll_offset-1; i>=0 && ind >= 1; i--) {
+      mvwprintw(chat_win, ind, 1, "%s", (chats[i].user + "\t:  " + chats[i].message).c_str());
+      ind--;
+    }
   }
   
   werase(help_win);
@@ -270,7 +285,7 @@ void tt::chat::client::Client::refresh_windows() {
     help = CHAT_HELP;
   else if (mode == INPUT)
     help = INPUT_HELP;
-  mvwprintw(help_win, 0, 1, help.c_str());
+  mvwprintw(help_win, 0, 1, "%s", help.c_str());
   // clrtoeol();
 
   // Draw input
@@ -350,7 +365,10 @@ void tt::chat::client::Client::ui_thread() {
       take_channel_input(key);
     }
 
-    refresh_windows();
+    {
+      std::lock_guard lock{refresh_mutex};
+      refresh_windows();
+    }
 
   } while (((key = getch()) != 'q') || (mode != CHOICE));
 

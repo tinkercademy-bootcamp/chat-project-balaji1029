@@ -130,14 +130,6 @@ void tt::chat::server::Server::send_channel_info(int sock) {
     channels_str += channels[i].get_name() + ";";
   }
   send_message(sock, channels_str);
-  // receive_message(sock); // Wait for acknowledgment
-
-  // Send each channel name
-  // for (Channel& channel : channels) {
-  //   send_message(sock, channel.get_name());
-  //   SPDLOG_INFO("Channel {} sent to user {}", channel.get_name(), usernames[sock]);
-  //   // receive_message(sock); // Wait for acknowledgment
-  // }
 }
 
 void tt::chat::server::Server::handle_client_message(int sock) {
