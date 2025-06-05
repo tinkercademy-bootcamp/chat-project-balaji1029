@@ -11,6 +11,10 @@
 #define SERVER_ERROR "Server closed connection.\n"
 #define READ_ERROR "Read error.\n"
 
+#define LEFT_WIDTH 35
+#define INPUT_HEIGHT 3
+#define MAX_LINES 1000
+
 struct Message {
     std::string user;
     std::string message;
@@ -33,7 +37,8 @@ public:
     std::string send_and_receive_message(const std::string &message);
     int send_message(const std::string& message);
     std::string receive_message();
-    void receive_thread(WINDOW* input_win, WINDOW* chat_win, WINDOW* channel_win);
+    void receive_thread();
+    void ui_thread();
     
     void push_channel_name(const std::string &channel_name);
     int get_channel_count();
@@ -52,12 +57,24 @@ public:
 
 private:
     int socket_;
-    int right_width;
     std::string username;
     std::vector<std::string> channel_names;
     
     std::mutex chat_mutex;          
-    std::mutex channel_mutex;       
+    std::mutex channel_mutex;
+    
+    WINDOW* channel_win;
+    WINDOW* chat_win;
+    WINDOW* input_win;
+
+    int height;
+    int width;
+    int right_width;
+    int right_height;
+
+    int scroll_offset;
+
+    void refresh_windows();
     
     // Helper methods
     sockaddr_in create_server_address(const std::string &server_ip, int port);
