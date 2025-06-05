@@ -181,7 +181,7 @@ void tt::chat::server::Server::handle_client_message(int sock) {
       std::string formatted_message = "m:" + std::to_string(channel_id) + ":" + usernames[sock] + ":" + actual_message;
       broadcast_to_channel(channel_id, formatted_message);
       
-      SPDLOG_INFO("Message from {} in channel {}: {}", usernames[sock], channel_id, actual_message);
+      // SPDLOG_INFO("Message from {} in channel {}: {}", usernames[sock], channel_id, actual_message);
     }
 
   } else if (message[0] == 't') {
