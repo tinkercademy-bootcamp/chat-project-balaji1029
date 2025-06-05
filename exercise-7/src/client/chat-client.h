@@ -27,7 +27,7 @@ namespace tt::chat::client {
 
 class Client {
 public:
-    Client(int port, const std::string &server_address);
+    Client(int port, const std::string &server_address, const std::string& username);
     ~Client();
     
     std::string send_and_receive_message(const std::string &message);
@@ -53,6 +53,7 @@ public:
 private:
     int socket_;
     int right_width;
+    std::string username;
     std::vector<std::string> channel_names;
     
     std::mutex chat_mutex;          

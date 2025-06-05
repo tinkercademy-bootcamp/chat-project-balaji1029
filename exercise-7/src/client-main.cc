@@ -41,23 +41,9 @@ int main(int argc, char *argv[]) {
   const int kPort = 8080;
   const std::string kServerAddress = "127.0.0.1";
 
-  std::string message = read_args(argc, argv);
+  std::string username = read_args(argc, argv);
 
-  tt::chat::client::Client client{kPort, kServerAddress};
-  std::string response = client.send_and_receive_message(message);
-
-  if (response == "unavailable") {
-    SPDLOG_ERROR("Username {} taken", message);
-    return 1;
-  }
-
-  std::string channels_str = client.receive_message();
-  
-  while (channels_str.find_first_of(';') != std::string::npos) {
-    int semi_colon_index = channels_str.find_first_of(';');
-    client.push_channel_name(channels_str.substr(0, semi_colon_index));
-    channels_str = channels_str.substr(semi_colon_index + 1, channels_str.size()-semi_colon_index-1);
-  }
+  tt::chat::client::Client client{kPort, kServerAddress, username};
 
   initscr();
   set_escdelay(25);

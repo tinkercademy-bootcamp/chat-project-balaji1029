@@ -12,8 +12,8 @@
 #define MAX_EVENTS 32
 
 tt::chat::client::Client::Client(int port,
-                                         const std::string &server_address)
-    : socket_{tt::chat::net::create_socket()} {
+                                         const std::string &server_address, const std::string& username)
+    : socket_{tt::chat::net::create_socket()}, username(username) {
   running.store(true);
   sockaddr_in address = create_server_address(server_address, port);
   connect_to_server(socket_, address);
@@ -23,6 +23,21 @@ tt::chat::client::Client::Client(int port,
   int height, width;
   getmaxyx(stdscr, height, width);
   right_width = width - LEFT_WIDTH;
+
+  std::string response = send_and_receive_message(username);
+
+  if (response == "unavailable") {
+    SPDLOG_ERROR("Username {} taken", username);
+    exit(EXIT_FAILURE);
+  }
+
+  std::string channels_str = receive_message();
+  
+  while (channels_str.find_first_of(';') != std::string::npos) {
+    int semi_colon_index = channels_str.find_first_of(';');
+    push_channel_name(channels_str.substr(0, semi_colon_index));
+    channels_str = channels_str.substr(semi_colon_index + 1, channels_str.size()-semi_colon_index-1);
+  }
 }
 
 std::string tt::chat::client::Client::send_and_receive_message(
