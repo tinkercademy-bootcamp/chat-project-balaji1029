@@ -5,6 +5,10 @@
 #include <mutex>
 #include <ncurses.h>
 
+#define LEFT_WIDTH 35
+#define INPUT_HEIGHT 3
+#define MAX_LINES 1000
+
 #define MAX_EVENTS 32
 
 tt::chat::client::Client::Client(int port,
@@ -16,6 +20,9 @@ tt::chat::client::Client::Client(int port,
   selected_channel = 0;
   mode = CHOICE;
   input_pos = 0;
+  int height, width;
+  getmaxyx(stdscr, height, width);
+  right_width = width - LEFT_WIDTH;
 }
 
 std::string tt::chat::client::Client::send_and_receive_message(
@@ -100,7 +107,7 @@ void tt::chat::client::Client::receive_thread(WINDOW* input_win, WINDOW* chat_wi
       }
     }
 
-    if (client.mode == INPUT) curs_set(1);
+    if (mode == INPUT) curs_set(1);
     else curs_set(0);
 
     werase(channel_win);
@@ -170,4 +177,51 @@ void tt::chat::client::Client::connect_to_server(
   auto err_code =
       connect(sock, (sockaddr *)&server_address, sizeof(server_address));
   check_error(err_code < 0, "Connection Failed.\n");
+}
+
+void tt::chat::client::Client::take_choice_input(const int& key) {
+  if (key == 'w') {
+    mode = CHANNELS;
+  } else if (key == 'c') {
+    mode = CHAT;
+  } else if (key == 'i') {
+    mode = INPUT;
+    curs_set(1);
+  }
+}
+
+void tt::chat::client::Client::take_message_input(const int& key) {
+  if (key == 27) {
+    mode = CHOICE;
+    curs_set(0);
+  } else if ((key == KEY_BACKSPACE || key == '\b') && input_pos > 0) {
+    input_string.erase(input_string.begin() + input_pos - 1);
+    input_pos--;
+  } else if (key == '\n') {
+    std::string message;
+    if (current_channel >= 0)
+      message = "m:" + std::to_string(current_channel) + ":" + input_string;
+    else {
+      message = "c:" + input_string;
+      mode = CHANNELS;
+    }
+    send_message(message);
+    input_string = "";
+    input_pos = 0;
+  } else if ((input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
+    if (input_pos == input_string.size()) {
+      input_string.push_back(key);
+    } else {
+      input_string.insert(input_string.begin()+input_pos, key);
+    }
+    input_pos++;
+  } else if (input_pos > 0 && key == KEY_LEFT) {
+    input_pos--;
+  } else if (input_pos < input_string.size() && key == KEY_RIGHT) {
+    input_pos++;
+  } else if (key == KEY_HOME) {
+    input_pos = 0;
+  } else if (key == KEY_END) {
+    input_pos = input_string.size();
+  }
 }

@@ -38,6 +38,9 @@ public:
     void push_channel_name(const std::string &channel_name);
     int get_channel_count();
     std::string get_channel_by_id(const int &id);
+
+    void take_choice_input(const int& key);
+    void take_message_input(const int& key);
     
     std::vector<Message> chats;
     int selected_channel;
@@ -49,6 +52,7 @@ public:
 
 private:
     int socket_;
+    int right_width;
     std::vector<std::string> channel_names;
     
     std::mutex chat_mutex;          

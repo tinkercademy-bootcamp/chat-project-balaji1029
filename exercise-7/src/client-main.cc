@@ -52,8 +52,6 @@ int main(int argc, char *argv[]) {
   }
 
   std::string channels_str = client.receive_message();
-  // std::cout << channel_num_str << std::endl;
-  // client.send_message(channel_num_str);
   
   while (channels_str.find_first_of(';') != std::string::npos) {
     int semi_colon_index = channels_str.find_first_of(';');
@@ -61,11 +59,6 @@ int main(int argc, char *argv[]) {
     channels_str = channels_str.substr(semi_colon_index + 1, channels_str.size()-semi_colon_index-1);
   }
 
-  // for (int i=0; i<client.get_channel_count(); i++) {
-  //   std::cout << i << ": " << client.get_channel_by_id(i) << std::endl;
-  // }
-
-  
   initscr();
   set_escdelay(25);
   noecho();
@@ -106,14 +99,7 @@ int main(int argc, char *argv[]) {
     mvwin(input_win, right_height, LEFT_WIDTH);
 
     if (client.mode == CHOICE) {
-      if (key == 'w') {
-        client.mode = CHANNELS;
-      } else if (key == 'c') {
-        client.mode = CHAT;
-      } else if (key == 'i') {
-        client.mode = INPUT;
-        curs_set(1);
-      }
+      client.take_choice_input(key);
     } else if (client.mode == CHAT) {
       if (key == 27) {
         client.mode = CHOICE;
@@ -121,41 +107,9 @@ int main(int argc, char *argv[]) {
         scroll_offset++;
       } else if ((key == KEY_DOWN || key == 'j') && scroll_offset > 0) {
         scroll_offset--;
-      } 
-    } else if (client.mode == INPUT) {
-      if (key == 27) {
-        client.mode = CHOICE;
-        curs_set(0);
-      } else if ((key == KEY_BACKSPACE || key == '\b') && client.input_pos > 0) {
-        client.input_string.erase(client.input_string.begin() + client.input_pos - 1);
-        client.input_pos--;
-      } else if (key == '\n') {
-        std::string message;
-        if (client.current_channel >= 0)
-          message = "m:" + std::to_string(client.current_channel) + ":" + client.input_string;
-        else {
-          message = "c:" + client.input_string;
-          client.mode = CHANNELS;
-        }
-        client.send_message(message);
-        client.input_string = "";
-        client.input_pos = 0;
-      } else if ((client.input_pos < right_width - 2) && (key >= 32 && key <= 126)) {
-        if (client.input_pos == client.input_string.size()) {
-          client.input_string.push_back(key);
-        } else {
-          client.input_string.insert(client.input_string.begin()+client.input_pos, key);
-        }
-        client.input_pos++;
-      } else if (client.input_pos > 0 && key == KEY_LEFT) {
-        client.input_pos--;
-      } else if (client.input_pos < client.input_string.size() && key == KEY_RIGHT) {
-        client.input_pos++;
-      } else if (key == KEY_HOME) {
-        client.input_pos = 0;
-      } else if (key == KEY_END) {
-        client.input_pos = client.input_string.size();
       }
+    } else if (client.mode == INPUT) {
+      client.take_message_input(key);
     } else if (client.mode == CHANNELS) {
       if (key == 27) {
         client.mode = CHOICE;
